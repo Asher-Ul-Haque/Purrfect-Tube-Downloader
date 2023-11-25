@@ -40,21 +40,21 @@ root=ctk.CTk()
 root.geometry('640x512+0+0')
 root.minsize(640,512)
 root.maxsize(640,512)
-root.configure(fg_color='white')
+root.configure(fg_color='#000000')
 root.title('Purrfect Downloads')
 root.wm_iconbitmap(os.path.join(Photo.imageDirectory, 'Logo.ico'))
 
 #This works only on windows
 try:
     HWND = windll.user32.GetParent(root.winfo_id())
-    windll.dwmapi.DwmSetWindowAttribute(HWND, 35, byref(c_int(0x0000FF)), sizeof(c_int))
+    windll.dwmapi.DwmSetWindowAttribute(HWND, 35, byref(c_int(0x000000)), sizeof(c_int))
 except:
     pass
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 #GLOBAL VARIABLES-
-mode='light'
+mode='dark'
 aspectRatio=5/4
 title='Purrfect Tube\nDownloader'
 searchBarText='...'
@@ -77,7 +77,7 @@ homeButton=ctk.CTkButton(master=root,
                          corner_radius=10,
                          hover_color='#ffffff',
                          anchor='e',
-                         image=whiteCat,
+                         image=blueCat,
                          width=5,
                          height=5,
                          compound='left')
@@ -158,8 +158,8 @@ searchButton=ctk.CTkButton(master=root,
                            hover_color='#ffffff',
                            anchor='e',
                            image=magnifyingGlass,
-                           width=1,
-                           height=1,
+                           width=8,
+                           height=8,
                            compound='left',
                            command=search)
 
@@ -182,10 +182,10 @@ searchBar.place(relx=0.55, rely=0.6, anchor='center')
 
 #The dark mode button can be used to toggle dark mode
 def modeChange():
-    global mode
+    global mode, modeButton
     if mode=='light':
         mode='dark'
-        modeButton.configure(image=moon)
+        modeButton.configure(image=moon, hover_color='#000000')
         root.configure(fg_color='#000000')
         homeButton.configure(hover_color='#000000')
         searchBar.configure(fg_color='#dddddd')
@@ -197,7 +197,7 @@ def modeChange():
             pass
     else:
         mode='light'
-        modeButton.configure(image=sun)
+        modeButton.configure(image=sun, hover_color='#ffffff')
         root.configure(fg_color='#ffffff')
         homeButton.configure(hover_color='#ffffff')
         searchBar.configure(fg_color='#ffffff')
@@ -216,7 +216,7 @@ modeButton=ctk.CTkButton(master=root,
                           height=10,
                           width=17,
                           anchor='e',
-                          image=sun,
+                          image=moon,
                           compound='left',
                           command=modeChange)
 modeButton.place(relx=0.85, rely=0.03)
