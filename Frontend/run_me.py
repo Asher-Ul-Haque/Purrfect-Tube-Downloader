@@ -57,13 +57,13 @@ except:
 mode='dark'
 aspectRatio=5/4
 title='Purrfect Tube\nDownloader'
-searchBarText='...'
-animatedSearchBarText=''
+statusBarText=ctk.StringVar(value='Status: Free')
 animatedTitle=''
 cursor=0
 url=''
 downloadDirectory = os.path.abspath('../Downloads')
 searchButtony=0.6
+downloadStack=[]
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -136,26 +136,32 @@ animateHeading()
 #The search bar and button-
 
 def search(*args, **kwargs):
-    try:
-        def find():
-            global url
-            url = searchBar.get()
+    def find():
+        global url
+        url = searchBar.get()
+        try:
+            statusBarText.set('Status: Searching')
             video = YoutubeObject(url)
+            statusBarText.set(f'Status: Downloading {video.getTitle()}')
+            downloadStack.append(video.getTitle())
             videoStream = YoutubeStream(video.best, downloadDirectory).download()
             print('Download Completed')
-        searchThread=threading.Thread(target=find)
-        mascotAnimationThread=threading.Thread(target=animateMascot, kwargs={'infinite':False})
-        searchThread.start()
-        mascotAnimationThread.start()
+            downloadStack.remove(video.getTitle())
+            statusBarText.set('Status: Download Complete')
+        except:
+            statusBarText.set('Status: Not a valid youtube URL')
+            print('Not a valid youtube URL')
 
-    except:
-        print('Not a valid youtube URL')
+    searchThread = threading.Thread(target=find)
+    mascotAnimationThread = threading.Thread(target=animateMascot, kwargs={'infinite': False})
+    searchThread.start()
+    mascotAnimationThread.start()
 
 searchButton=ctk.CTkButton(master=root,
                            fg_color='transparent',
                            text='',
                            corner_radius=20,
-                           hover_color='#ffffff',
+                           hover_color='#000000',
                            anchor='e',
                            image=magnifyingGlass,
                            width=8,
@@ -220,6 +226,27 @@ modeButton=ctk.CTkButton(master=root,
                           compound='left',
                           command=modeChange)
 modeButton.place(relx=0.85, rely=0.03)
+
+#--------------------------------------------------
+
+#This is a status bar that is on all the pages. It shows searching etc
+statusLabel=ctk.CTkLabel(font=subHeadingFont,
+                         master=root,
+                         fg_color='red',
+                         text_color='white',
+                         textvariable=statusBarText,
+                         width=640,
+                         anchor='w',
+                         corner_radius=5)
+
+def statusBarClear():
+    print('Checking Status Bar')
+    global statusBarText
+    if statusBarText.get()!='Status: Free' or len(downloadStack)!=0:
+        statusBarText.set('Status: Free')
+    root.after(5000, statusBarClear)
+statusLabel.place(relx=0.5, rely=0.975, anchor='center')
+statusBarClear()
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
