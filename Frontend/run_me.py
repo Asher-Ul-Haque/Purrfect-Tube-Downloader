@@ -31,7 +31,6 @@ blueCatBlink=Photo('blue_cat_blink.png').getImage()
 sun=Photo('sun.png').getImage(64,64)
 moon=Photo('moon.png').getImage(64,64)
 magnifyingGlass=Photo('magnifying_glass.png').getImage(64,64)
-print(magnifyingGlass)
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -75,7 +74,7 @@ homeButton=ctk.CTkButton(master=root,
                          fg_color='transparent',
                          text='',
                          corner_radius=10,
-                         hover_color='#ffffff',
+                         hover_color='#000000',
                          anchor='e',
                          image=blueCat,
                          width=5,
@@ -145,12 +144,11 @@ def search(*args, **kwargs):
             statusBarText.set(f'Status: Downloading {video.getTitle()}')
             downloadStack.append(video.getTitle())
             videoStream = YoutubeStream(video.best, downloadDirectory).download()
-            print('Download Completed')
             downloadStack.remove(video.getTitle())
             statusBarText.set('Status: Download Complete')
         except:
             statusBarText.set('Status: Not a valid youtube URL')
-            print('Not a valid youtube URL')
+
 
     searchThread = threading.Thread(target=find)
     mascotAnimationThread = threading.Thread(target=animateMascot, kwargs={'infinite': False})
@@ -218,7 +216,7 @@ modeButton=ctk.CTkButton(master=root,
                           fg_color='transparent',
                           text='',
                           corner_radius=10,
-                          hover_color='#dddddd',
+                          hover_color='#000000',
                           height=10,
                           width=17,
                           anchor='e',
@@ -230,7 +228,7 @@ modeButton.place(relx=0.85, rely=0.03)
 #--------------------------------------------------
 
 #This is a status bar that is on all the pages. It shows searching etc
-statusLabel=ctk.CTkLabel(font=subHeadingFont,
+statusLabel=ctk.CTkLabel(font=textFont,
                          master=root,
                          fg_color='red',
                          text_color='white',
@@ -240,13 +238,19 @@ statusLabel=ctk.CTkLabel(font=subHeadingFont,
                          corner_radius=5)
 
 def statusBarClear():
-    print('Checking Status Bar')
     global statusBarText
     if statusBarText.get()!='Status: Free' or len(downloadStack)!=0:
         statusBarText.set('Status: Free')
     root.after(5000, statusBarClear)
 statusLabel.place(relx=0.5, rely=0.975, anchor='center')
 statusBarClear()
+
+def goToHomePage():
+    global root
+    root.destroy()
+    os.system('python run_me.py')
+
+homeButton.configure(command=goToHomePage)
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
