@@ -143,8 +143,8 @@ def animateSearchPanel():
         global searchPanelyPos
         if searchPanelyPos>0.32:
             searchPanelyPos-=0.01
-            searchButton.place(relx=0.1, rely=searchPanelyPos, anchor='center')
-            searchBar.place(relx=0.55, rely=searchPanelyPos, anchor='center')
+            searchButton.place(relx=0.9, rely=searchPanelyPos, anchor='center')
+            searchBar.place(relx=0.45, rely=searchPanelyPos, anchor='center')
             root.after(8, animateUpwards)
         else:
             atStart=False
@@ -152,8 +152,8 @@ def animateSearchPanel():
         global searchPanelyPos
         if searchPanelyPos < 0.6:
             searchPanelyPos += 0.01
-            searchButton.place(relx=0.1, rely=searchPanelyPos, anchor='center')
-            searchBar.place(relx=0.55, rely=searchPanelyPos, anchor='center')
+            searchButton.place(relx=0.9, rely=searchPanelyPos, anchor='center')
+            searchBar.place(relx=0.45, rely=searchPanelyPos, anchor='center')
             root.after(8, animateDownwards())
         else:
             atStart = True
@@ -168,11 +168,11 @@ def search(*args, **kwargs):
         url = searchBar.get()
         try:
             statusBarText.set('Status: Searching')
+            video = YoutubeObject(url)
+            path=video.downloadThumbnail()
             statusLabel.tkraise()
             animateSearchPanel()
             urlPanel.animateUpwards()
-            video = YoutubeObject(url)
-            path=video.downloadThumbnail()
             if path!='Failed to fetch thumbnail':
                 thumbnail = Photo(path).getImage(64, 64)
                 thumbnailLabel.configure(image=thumbnail)
@@ -219,9 +219,9 @@ searchBar=ctk.CTkEntry(master=root,
                        placeholder_text='Enter the URL of the video',
                        placeholder_text_color='#CD0000')
 
-searchButton.place(relx=0.1, rely=0.6, anchor='center')
+searchButton.place(relx=0.9, rely=0.6, anchor='center')
 searchBar.bind('<Return>', search)
-searchBar.place(relx=0.55, rely=0.6, anchor='center')
+searchBar.place(relx=0.45, rely=0.6, anchor='center')
 
 #--------------------------------------------------
 
@@ -235,6 +235,8 @@ def modeChange():
         homeButton.configure(hover_color='#000000')
         searchBar.configure(fg_color='#dddddd')
         searchButton.configure(hover_color='#000000')
+        if 'Free' in statusBarText.get() or 'Searching' in statusBarText.get():
+            statusLabel.configure(text_color='white')
         try:
             HWND = windll.user32.GetParent(root.winfo_id())
             windll.dwmapi.DwmSetWindowAttribute(HWND, 35, byref(c_int(0x000000)), sizeof(c_int))
@@ -247,6 +249,8 @@ def modeChange():
         homeButton.configure(hover_color='#ffffff')
         searchBar.configure(fg_color='#ffffff')
         searchButton.configure(hover_color='#ffffff')
+        if 'Free' in statusBarText.get() or 'Searching' in statusBarText.get():
+            statusLabel.configure(text_color='black')
         try:
             HWND = windll.user32.GetParent(root.winfo_id())
             windll.dwmapi.DwmSetWindowAttribute(HWND, 35, byref(c_int(0x0000FF)), sizeof(c_int))
@@ -269,9 +273,10 @@ modeButton.place(relx=0.85, rely=0.03)
 #--------------------------------------------------
 
 #This is a status bar that is on all the pages. It shows searching etc
+
 statusLabel=ctk.CTkLabel(font=textFont,
                          master=root,
-                         fg_color='#434343',
+                         fg_color='transparent',
                          text_color='white',
                          textvariable=statusBarText,
                          width=640,
@@ -279,10 +284,14 @@ statusLabel=ctk.CTkLabel(font=textFont,
 
 def statusBarClear():
     global statusBarText
-    if statusBarText.get()!='Status: Free' or len(downloadStack)!=0 or 'Downloading' not in statusBarText.get():
+    if statusBarText.get()=='Status: Download Complete' or statusBarText.get()=='Status: Failed to fetch thumbnail' or statusBarText.get()=='Status: Not a valid youtube URL':
         statusBarText.set('Status: Free')
-        statusLabel.configure(text_color='white')
+        if mode=='light':
+            statusLabel.configure(text_color='black')
+        else:
+            statusLabel.configure(text_color='white')
     root.after(7000, statusBarClear)
+
 statusLabel.place(relx=0.5, rely=0.975, anchor='center')
 statusBarClear()
 
