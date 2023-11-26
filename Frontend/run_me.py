@@ -279,7 +279,7 @@ statusLabel=ctk.CTkLabel(font=textFont,
 
 def statusBarClear():
     global statusBarText
-    if statusBarText.get()!='Status: Free' or len(downloadStack)!=0:
+    if statusBarText.get()!='Status: Free' or len(downloadStack)!=0 or 'Downloading' not in statusBarText.get():
         statusBarText.set('Status: Free')
         statusLabel.configure(text_color='white')
     root.after(7000, statusBarClear)
