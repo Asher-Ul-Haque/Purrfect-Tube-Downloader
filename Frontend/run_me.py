@@ -33,7 +33,7 @@ blueCatBlink=Photo('blue_cat_blink.png').getImage()
 sun=Photo('sun.png').getImage(64,64)
 moon=Photo('moon.png').getImage(64,64)
 magnifyingGlass=Photo('magnifying_glass.png').getImage(64,64)
-thumbnailBackup=Photo('photo_backup.png').getImage(64, 64)
+thumbnailBackup=Photo('photo_backup.png').getImage(150, 150)
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -174,7 +174,7 @@ def search(*args, **kwargs):
             animateSearchPanel()
             urlPanel.animateUpwards()
             if path!='Failed to fetch thumbnail':
-                thumbnail = Photo(path).getImage(64, 64)
+                thumbnail = Photo(path, maintainAspectRatio=True).getImage()
                 thumbnailLabel.configure(image=thumbnail)
             else:
                 statusBarText.set('Status: Failed to fetch thumbnail')
@@ -308,16 +308,15 @@ homeButton.configure(command=goToHomePage)
 #This panel shows the results of the search of the URL
 urlPanel=AnimatedPanel(root, 1, 0.4, 'y')
 thumbnailLabel=ctk.CTkLabel(master=urlPanel,
-                            image=thumbnail,
+                            image=thumbnailBackup,
+                            text='',
+                            fg_color='red',
+                            bg_color='red',
                             anchor='w',
                             corner_radius=10,
-                            width=5,
-                            height=5,
+                            width=1,
+                            height=1,
                             compound='left')
-try:
-    thumbnailLabel.configure(image=thumbnail)
-except:
-    pass
 thumbnailLabel.pack(side='left')
 
 
