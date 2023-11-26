@@ -1,4 +1,6 @@
 from pytube import YouTube
+import requests
+import os
 
 class YoutubeObject:
     def __init__(self, url):
@@ -45,3 +47,14 @@ class YoutubeObject:
 
     def getThumbnailURL(self):
         return self.thumbnail_url
+
+    def downloadThumbnail(self):
+        response = requests.get(self.thumbnail_url)
+        thumbnailDirectory = os.path.abspath('../Assets/Thumbnails')
+        if response.status_code == 200:
+            path = os.path.join(thumbnailDirectory, self.title + ".png")
+            with open(path, "wb") as thumbnail:
+                thumbnail.write(response.content)
+            return path
+        else:
+            return 'Failed to fetch thumbnail'

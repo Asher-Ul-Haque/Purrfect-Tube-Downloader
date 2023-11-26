@@ -2,7 +2,7 @@
 import customtkinter as ctk
 import random
 import os
-from Photo import Photo
+from photo_object import Photo
 import sys
 import threading
 sys.path.append(os.path.abspath('../Backend'))
@@ -33,6 +33,7 @@ blueCatBlink=Photo('blue_cat_blink.png').getImage()
 sun=Photo('sun.png').getImage(64,64)
 moon=Photo('moon.png').getImage(64,64)
 magnifyingGlass=Photo('magnifying_glass.png').getImage(64,64)
+thumbnailBackup=Photo('photo_backup.png').getImage(64, 64)
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -65,6 +66,7 @@ url=''
 downloadDirectory = os.path.abspath('../Downloads')
 downloadStack=[]
 searchPanelyPos = 0.6
+thumbnail=thumbnailBackup
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -162,7 +164,7 @@ def animateSearchPanel():
 
 def search(*args, **kwargs):
     def find():
-        global url
+        global url, thumbnail
         url = searchBar.get()
         try:
             statusBarText.set('Status: Searching')
@@ -170,6 +172,13 @@ def search(*args, **kwargs):
             animateSearchPanel()
             urlPanel.animateUpwards()
             video = YoutubeObject(url)
+            path=video.downloadThumbnail()
+            if path!='Failed to fetch thumbnail':
+                thumbnail = Photo(path).getImage(64, 64)
+                thumbnailLabel.configure(image=thumbnail)
+            else:
+                statusBarText.set('Status: Failed to fetch thumbnail')
+                statusLabel.configure(text_color='#ff0000')
             statusBarText.set(f'Status: Downloading {video.getTitle()}')
             statusLabel.configure(text_color='#00ff00')
             downloadStack.append(video.getTitle())
@@ -289,6 +298,19 @@ homeButton.configure(command=goToHomePage)
 #THE URL RESULT PANEL-
 #This panel shows the results of the search of the URL
 urlPanel=AnimatedPanel(root, 1, 0.4, 'y')
+thumbnailLabel=ctk.CTkLabel(master=urlPanel,
+                            image=thumbnail,
+                            anchor='w',
+                            corner_radius=10,
+                            width=5,
+                            height=5,
+                            compound='left')
+try:
+    thumbnailLabel.configure(image=thumbnail)
+except:
+    pass
+thumbnailLabel.pack(side='left')
+
 
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
