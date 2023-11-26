@@ -6,7 +6,9 @@ from Photo import Photo
 import sys
 import threading
 sys.path.append(os.path.abspath('../Backend'))
+sys.path.append(os.path.abspath('../Frontend'))
 sys.path.append(os.path.abspath('../Downloads'))
+from animated_sliding_panel import AnimatedPanel
 from youtube_object import YoutubeObject
 from youtube_stream import YoutubeStream
 try:
@@ -61,8 +63,8 @@ animatedTitle=''
 cursor=0
 url=''
 downloadDirectory = os.path.abspath('../Downloads')
-searchButtony=0.6
 downloadStack=[]
+searchPanelyPos = 0.6
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -133,6 +135,30 @@ animateHeading()
 
 #--------------------------------------------------
 #The search bar and button-
+def animateSearchPanel():
+    atStart=True
+    def animateUpwards():
+        global searchPanelyPos
+        if searchPanelyPos>0.32:
+            searchPanelyPos-=0.01
+            searchButton.place(relx=0.1, rely=searchPanelyPos, anchor='center')
+            searchBar.place(relx=0.55, rely=searchPanelyPos, anchor='center')
+            root.after(8, animateUpwards)
+        else:
+            atStart=False
+    def animateDownwards():
+        global searchPanelyPos
+        if searchPanelyPos < 0.6:
+            searchPanelyPos += 0.01
+            searchButton.place(relx=0.1, rely=searchPanelyPos, anchor='center')
+            searchBar.place(relx=0.55, rely=searchPanelyPos, anchor='center')
+            root.after(8, animateDownwards())
+        else:
+            atStart = True
+    if atStart:
+        animateUpwards()
+    else:
+        animateDownwards()
 
 def search(*args, **kwargs):
     def find():
@@ -140,14 +166,20 @@ def search(*args, **kwargs):
         url = searchBar.get()
         try:
             statusBarText.set('Status: Searching')
+            statusLabel.tkraise()
+            animateSearchPanel()
+            urlPanel.animateUpwards()
             video = YoutubeObject(url)
             statusBarText.set(f'Status: Downloading {video.getTitle()}')
+            statusLabel.configure(text_color='#00ff00')
             downloadStack.append(video.getTitle())
             videoStream = YoutubeStream(video.best, downloadDirectory).download()
             downloadStack.remove(video.getTitle())
+            statusLabel.configure(text_color='#00ff00')
             statusBarText.set('Status: Download Complete')
         except:
             statusBarText.set('Status: Not a valid youtube URL')
+            statusLabel.configure(text_color='#ff0000')
 
 
     searchThread = threading.Thread(target=find)
@@ -230,27 +262,34 @@ modeButton.place(relx=0.85, rely=0.03)
 #This is a status bar that is on all the pages. It shows searching etc
 statusLabel=ctk.CTkLabel(font=textFont,
                          master=root,
-                         fg_color='red',
+                         fg_color='#434343',
                          text_color='white',
                          textvariable=statusBarText,
                          width=640,
-                         anchor='w',
-                         corner_radius=5)
+                         anchor='w')
 
 def statusBarClear():
     global statusBarText
     if statusBarText.get()!='Status: Free' or len(downloadStack)!=0:
         statusBarText.set('Status: Free')
-    root.after(5000, statusBarClear)
+        statusLabel.configure(text_color='white')
+    root.after(7000, statusBarClear)
 statusLabel.place(relx=0.5, rely=0.975, anchor='center')
 statusBarClear()
 
 def goToHomePage():
-    global root
+    global root, url
     root.destroy()
     os.system('python run_me.py')
 
 homeButton.configure(command=goToHomePage)
+
+#= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
+
+#THE URL RESULT PANEL-
+#This panel shows the results of the search of the URL
+urlPanel=AnimatedPanel(root, 1, 0.4, 'y')
+
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
