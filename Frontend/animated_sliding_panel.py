@@ -2,7 +2,7 @@ import customtkinter as ctk
 
 class AnimatedPanel(ctk.CTkFrame):
     def __init__(self, parent, startPos, endPos, orientation):
-        super().__init__(master=parent, fg_color='red', corner_radius=10)
+        super().__init__(master=parent, fg_color='red', corner_radius=10, border_color='red', border_width=10)
 
         #general atributes
         self.startPos=startPos

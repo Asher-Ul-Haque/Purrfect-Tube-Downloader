@@ -67,6 +67,7 @@ downloadDirectory = os.path.abspath('../Downloads')
 downloadStack=[]
 searchPanelyPos = 0.6
 thumbnail=thumbnailBackup
+currentVideoTitle=''
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -164,13 +165,14 @@ def animateSearchPanel():
 
 def search(*args, **kwargs):
     def find():
-        global url, thumbnail
+        global url, thumbnail, currentVideoTitle
         url = searchBar.get()
         try:
             statusBarText.set('Status: Searching')
             video = YoutubeObject(url)
             path=video.downloadThumbnail()
             statusLabel.tkraise()
+            currentVideoTitle=str(video.getTitle())
             animateSearchPanel()
             urlPanel.animateUpwards()
             if path!='Failed to fetch thumbnail':
@@ -311,13 +313,25 @@ thumbnailLabel=ctk.CTkLabel(master=urlPanel,
                             image=thumbnailBackup,
                             text='',
                             fg_color='red',
-                            bg_color='red',
-                            anchor='w',
-                            corner_radius=10,
-                            width=1,
-                            height=1,
+                            anchor='center',
+                            corner_radius=5,
+                            width=10,
+                            height=10,
                             compound='left')
-thumbnailLabel.pack(side='left')
+urlPanel.configure(fg_color='#fdfdfd')
+thumbnailLabel.place(relx=0.17, rely=0.28, anchor='center')
+
+print(currentVideoTitle)
+videoTitleLabel=ctk.CTkLabel(master=urlPanel,
+                        text=currentVideoTitle,
+                        font=subHeadingFont,
+                        fg_color='transparent',
+                        bg_color='red',
+                        text_color='red',
+                        width=150,
+                        height=50)
+# videoTitleLabel.tkraise()
+videoTitleLabel.pack()
 
 
 
