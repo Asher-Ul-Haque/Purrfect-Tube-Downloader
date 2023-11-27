@@ -318,7 +318,7 @@ thumbnailLabel=ctk.CTkLabel(master=urlPanel,
                             text='',
                             fg_color='red',
                             anchor='center',
-                            corner_radius=5,
+                            corner_radius=0,
                             width=10,
                             height=10,
                             compound='left')
@@ -327,7 +327,7 @@ thumbnailLabel.place(relx=0.17, rely=0.28, anchor='center')
 
 #--------------------------------------------------
 
-#The title of the video
+#The title of the video and video data
 videoTitleLabel=ctk.CTkLabel(master=urlPanel,
                         font=textFont,
                         fg_color='transparent',
@@ -339,8 +339,26 @@ videoDataLabel=ctk.CTkLabel(master=urlPanel,
                         text_color='red',
                         anchor='w',
                         justify='left')
-videoTitleLabel.place(relx=0.02, rely=0.55)
+videoTitleLabel.place(relx=0.022, rely=0.55)
 videoDataLabel.place(relx=0.02, rely=0.75)
+
+#--------------------------------------------------
+
+#Side bar
+ctk.CTkLabel(master=urlPanel, text='', width=10, height=300, fg_color='red', bg_color='white').place(relx=0.33, rely=0.52, anchor='center')
+
+
+#--------------------------------------------------
+
+#The download title
+downloadsLabel=ctk.CTkLabel(master=urlPanel,
+                            text_color='red',
+                            text='Download Options-',
+                            font=subHeadingFont,
+                            fg_color='transparent',
+                            anchor='center',
+                            justify='center')
+downloadsLabel.place(relx=0.65, rely=0.08, anchor='center')
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
