@@ -39,12 +39,6 @@ class YoutubeObject:
     def getViews(self):
         return self.views
 
-    def getLikes(self):
-        return self.likes
-
-    def getDislikes(self):
-        return self.dislikes
-
     def getThumbnailURL(self):
         return self.thumbnail_url
 
@@ -58,3 +52,49 @@ class YoutubeObject:
             return path
         else:
             return 'Failed to fetch thumbnail'
+
+    def getDisplayableTitle(self):
+        words=self.title.split(' ')
+        displayableTitle=''
+        for word in words:
+            if len(displayableTitle)+len(word)>30:
+                displayableTitle+='\n'
+            displayableTitle += word+' '
+        if len(displayableTitle)>90:
+            displayableTitle=displayableTitle[:87]+'...'
+        return displayableTitle
+    def getDisplayData(self):
+        minutes=0
+        hours=0
+        seconds=self.length
+        thousands=0
+        millions=0
+        ones=0
+        data=''
+        data+='by: '+self.author[:25]
+        data+='\n'
+        data+='time: '
+        if self.length<60:
+            data+=':'+str(self.length)
+        elif 60<self.length<3600:
+            minutes=self.length//60
+            seconds=self.length%60
+            data+=str(minutes)+':'+str(seconds)
+        else:
+            hours=self.length//3600
+            minutes=(self.length%3600)//60
+            seconds=(self.length%3600)%60
+            data+=str(hours)+':'+str(minutes)+':'+str(seconds)
+        data+='\n'
+        if self.views<1000:
+            data+='views: '+str(self.views)
+        elif self.views<1000000:
+            thousands=self.views//1000
+            ones=(self.views%1000)
+            data+=str(thousands)+'.'+str(ones)[:2]+'K views'
+        else:
+            millions=self.views//1000000
+            thousands=(self.views%1000000)
+            data+=str(millions)+'.'+str(thousands)[:2]+'M views'
+        return data
+

@@ -22,6 +22,7 @@ except:
 headingFont=('Cooper Black', 50, 'bold')
 subHeadingFont=('Cooper Black', 16)
 textFont=('Cooper Black', 12)
+displayTextFont=('Cooper Black', 10)
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -64,10 +65,11 @@ animatedTitle=''
 cursor=0
 url=''
 downloadDirectory = os.path.abspath('../Downloads')
+if not os.path.exists(downloadDirectory):
+    os.makedirs(downloadDirectory)
 downloadStack=[]
 searchPanelyPos = 0.6
 thumbnail=thumbnailBackup
-currentVideoTitle=''
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -165,14 +167,13 @@ def animateSearchPanel():
 
 def search(*args, **kwargs):
     def find():
-        global url, thumbnail, currentVideoTitle
+        global url, thumbnail
         url = searchBar.get()
         try:
             statusBarText.set('Status: Searching')
             video = YoutubeObject(url)
             path=video.downloadThumbnail()
             statusLabel.tkraise()
-            currentVideoTitle=str(video.getTitle())
             animateSearchPanel()
             urlPanel.animateUpwards()
             if path!='Failed to fetch thumbnail':
@@ -184,6 +185,9 @@ def search(*args, **kwargs):
             statusBarText.set(f'Status: Downloading {video.getTitle()}')
             statusLabel.configure(text_color='#00ff00')
             downloadStack.append(video.getTitle())
+            videoTitleLabel.configure(text=video.getDisplayableTitle())
+            videoDataLabel.configure(text=video.getDisplayData())
+            print(downloadStack)
             videoStream = YoutubeStream(video.best, downloadDirectory).download()
             downloadStack.remove(video.getTitle())
             statusLabel.configure(text_color='#00ff00')
@@ -321,19 +325,22 @@ thumbnailLabel=ctk.CTkLabel(master=urlPanel,
 urlPanel.configure(fg_color='#fdfdfd')
 thumbnailLabel.place(relx=0.17, rely=0.28, anchor='center')
 
-print(currentVideoTitle)
+#--------------------------------------------------
+
+#The title of the video
 videoTitleLabel=ctk.CTkLabel(master=urlPanel,
-                        text=currentVideoTitle,
-                        font=subHeadingFont,
+                        font=textFont,
                         fg_color='transparent',
-                        bg_color='red',
                         text_color='red',
-                        width=150,
-                        height=50)
-# videoTitleLabel.tkraise()
-videoTitleLabel.pack()
-
-
+                        anchor='center')
+videoDataLabel=ctk.CTkLabel(master=urlPanel,
+                        font=textFont,
+                        fg_color='transparent',
+                        text_color='red',
+                        anchor='w',
+                        justify='left')
+videoTitleLabel.place(relx=0.02, rely=0.55)
+videoDataLabel.place(relx=0.02, rely=0.75)
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
