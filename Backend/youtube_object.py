@@ -75,11 +75,11 @@ class YoutubeObject:
         data+='\n'
         data+='time: '
         if self.length<60:
-            data+=':'+str(self.length)
+            data+='0:'+str(self.length)
         elif 60<self.length<3600:
             minutes=self.length//60
             seconds=self.length%60
-            data+=str(minutes)+'0:'+str(seconds)
+            data+=str(minutes)+':'+str(seconds)
         else:
             hours=self.length//3600
             minutes=(self.length%3600)//60

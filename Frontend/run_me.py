@@ -347,18 +347,10 @@ videoDataLabel.place(relx=0.02, rely=0.75)
 #Side bar
 ctk.CTkLabel(master=urlPanel, text='', width=10, height=300, fg_color='red', bg_color='white').place(relx=0.33, rely=0.52, anchor='center')
 
-
 #--------------------------------------------------
 
 #The download title
-downloadsLabel=ctk.CTkLabel(master=urlPanel,
-                            text_color='red',
-                            text='Download Options-',
-                            font=subHeadingFont,
-                            fg_color='transparent',
-                            anchor='center',
-                            justify='center')
-downloadsLabel.place(relx=0.65, rely=0.08, anchor='center')
+ctk.CTkLabel(master=urlPanel, text_color='red', text='Download Options-', font=subHeadingFont, fg_color='transparent', anchor='center', justify='center').place(relx=0.65, rely=0.08, anchor='center')
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
