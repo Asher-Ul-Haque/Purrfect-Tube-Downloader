@@ -35,6 +35,7 @@ sun=Photo('sun.png').getImage(64,64)
 moon=Photo('moon.png').getImage(64,64)
 magnifyingGlass=Photo('magnifying_glass.png').getImage(64,64)
 thumbnailBackup=Photo('photo_backup.png').getImage(150, 150)
+cascadeDownwards=Photo('cascade_button.png').getImage(20, 20)
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -70,6 +71,8 @@ if not os.path.exists(downloadDirectory):
 downloadStack=[]
 searchPanelyPos = 0.6
 thumbnail=thumbnailBackup
+pos=1
+atStart=True
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -141,7 +144,7 @@ animateHeading()
 #--------------------------------------------------
 #The search bar and button-
 def animateSearchPanel():
-    atStart=True
+    global atStart
     def animateUpwards():
         global searchPanelyPos
         if searchPanelyPos>0.32:
@@ -165,6 +168,8 @@ def animateSearchPanel():
     else:
         animateDownwards()
 
+
+
 def search(*args, **kwargs):
     def find():
         global url, thumbnail
@@ -174,8 +179,27 @@ def search(*args, **kwargs):
             video = YoutubeObject(url)
             path=video.downloadThumbnail()
             statusLabel.tkraise()
-            animateSearchPanel()
-            urlPanel.animateUpwards()
+
+            def forceUpSearchPanel():
+                global searchPanelyPos
+                if searchPanelyPos > 0.32:
+                    searchPanelyPos -= 0.01
+                    searchButton.place(relx=0.9, rely=searchPanelyPos, anchor='center')
+                    searchBar.place(relx=0.45, rely=searchPanelyPos, anchor='center')
+                    root.after(8, forceUpSearchPanel)
+            def forceOpenPanel():
+                global pos
+                print('Animating URL Panel upwards')
+                if pos >= 0.4:
+                    pos -= 0.01
+                    urlPanel.place(rely=pos, relwidth=1, relheight=0.6, relx=0)
+                    root.after(8, forceOpenPanel)
+            # try:
+            #     forceUpSearchPanel()
+            #     forceOpenPanel()
+            # except:
+            #     urlPanel.animateUpwards()
+
             if path!='Failed to fetch thumbnail':
                 thumbnail = Photo(path, maintainAspectRatio=True).getImage()
                 thumbnailLabel.configure(image=thumbnail)
@@ -199,8 +223,12 @@ def search(*args, **kwargs):
 
     searchThread = threading.Thread(target=find)
     mascotAnimationThread = threading.Thread(target=animateMascot, kwargs={'infinite': False})
+    searchPanelAnimationThread= threading.Thread(target=animateSearchPanel)
+    urlPanelAnimationThread= threading.Thread(target=urlPanel.animate)
     searchThread.start()
     mascotAnimationThread.start()
+    searchPanelAnimationThread.start()
+    urlPanelAnimationThread.start()
 
 searchButton=ctk.CTkButton(master=root,
                            fg_color='transparent',
@@ -341,6 +369,43 @@ videoDataLabel=ctk.CTkLabel(master=urlPanel,
                         justify='left')
 videoTitleLabel.place(relx=0.022, rely=0.55)
 videoDataLabel.place(relx=0.02, rely=0.75)
+
+#--------------------------------------------------
+
+def forceDownSearchPanel():
+    global searchPanelyPos
+    print(searchPanelyPos)
+    if searchPanelyPos <= 0.6:
+        searchPanelyPos += 0.01
+        searchButton.place(relx=0.9, rely=searchPanelyPos, anchor='center')
+        searchBar.place(relx=0.45, rely=searchPanelyPos, anchor='center')
+        root.after(8, forceDownSearchPanel)
+def forceClosePanel():
+    animateSearchPanel()
+    global pos
+    print('Animating URL Paneldownwards')
+    if pos < 1:
+        pos += 0.01
+        urlPanel.place(rely=pos, relwidth=1, relheight=0.6, relx=0)
+        root.after(8, forceClosePanel)
+
+def forceQuitVideo():
+    forceDownSearchPanel()
+    forceClosePanel()
+
+#close button
+closeURLPanelButton=ctk.CTkButton(master=urlPanel,
+                         fg_color='transparent',
+                         text='',
+                         corner_radius=10,
+                         hover_color='#000000',
+                         anchor='e',
+                         image=cascadeDownwards,
+                         width=5,
+                         height=5,
+                         compound='left',
+                         command=forceQuitVideo)
+closeURLPanelButton.place(relx=0.95, rely=0.05, anchor='center')
 
 #--------------------------------------------------
 

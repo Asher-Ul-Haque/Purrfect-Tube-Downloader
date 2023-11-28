@@ -13,7 +13,6 @@ class AnimatedPanel(ctk.CTkFrame):
         self.pos=startPos
         self.atStart=True
 
-
         if self.orientation=='x':
             self.width=abs(startPos-endPos)
             self.place(relx=self.startPos, relwidth=self.width, relheight=0.7, rely=0.3)
@@ -50,6 +49,7 @@ class AnimatedPanel(ctk.CTkFrame):
             self.atStart=True
 
     def animateUpwards(self):
+        print('Animating upwards')
         if self.pos>self.endPos:
             self.pos-=0.01
             self.place(rely=self.pos, relwidth=1, relheight=self.height, relx=0)
@@ -58,9 +58,10 @@ class AnimatedPanel(ctk.CTkFrame):
             self.atStart=False
 
     def animateDownwards(self):
-        if self.pos<self.endPos:
-            self.pos+=0.01
+        print('Animating downwards')
+        if self.pos < self.endPos:
+            self.pos += 0.01
             self.place(rely=self.pos, relwidth=1, relheight=self.height, relx=0)
-            self.after(8, self.animateDownwards)
+            self.after(8, self.animateUpwards)
         else:
-            self.atStart=True
+            self.atStart = True
