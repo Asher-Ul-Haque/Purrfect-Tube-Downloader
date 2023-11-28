@@ -322,7 +322,7 @@ thumbnailLabel=ctk.CTkLabel(master=urlPanel,
                             width=10,
                             height=10,
                             compound='left')
-urlPanel.configure(fg_color='#fdfdfd')
+urlPanel.configure(fg_color='transparent')
 thumbnailLabel.place(relx=0.17, rely=0.28, anchor='center')
 
 #--------------------------------------------------
