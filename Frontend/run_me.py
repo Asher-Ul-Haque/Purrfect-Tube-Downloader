@@ -157,11 +157,7 @@ def animateSearchPanelDownwards():
         root.after(5, animateSearchPanelDownwards)
     else:
         searchBar.delete(0, 'end')
-        searchBar.focus_set()
-        thumbnailLabel.configure(image=thumbnailBackup)
-        videoTitleLabel.configure(text='')
-        videoDataLabel.configure(text='')
-        url=''
+        searchBar.insert(0, '')
 
 def search(*args, **kwargs):
     def find():
@@ -239,6 +235,7 @@ def modeChange():
         homeButton.configure(hover_color='#000000')
         searchBar.configure(fg_color='#dddddd')
         searchButton.configure(hover_color='#000000')
+        closePanelButton.configure(hover_color='#000000')
         if 'Free' in statusBarText.get() or 'Searching' in statusBarText.get():
             statusLabel.configure(text_color='white')
         try:
@@ -248,6 +245,7 @@ def modeChange():
             pass
     else:
         mode='light'
+        closePanelButton.configure(hover_color='#ffffff')
         modeButton.configure(image=sun, hover_color='#ffffff')
         root.configure(fg_color='#ffffff')
         homeButton.configure(hover_color='#ffffff')
@@ -321,7 +319,7 @@ thumbnailLabel=ctk.CTkLabel(master=urlPanel,
                             height=10,
                             compound='left')
 urlPanel.configure(fg_color='transparent', corner_radius=5, border_color='red', border_width=5)
-thumbnailLabel.place(relx=0.17, rely=0.28, anchor='center')
+thumbnailLabel.place(relx=0.165, rely=0.28, anchor='center')
 
 #--------------------------------------------------
 
@@ -337,7 +335,7 @@ videoDataLabel=ctk.CTkLabel(master=urlPanel,
                         text_color='red',
                         anchor='w',
                         justify='left')
-videoTitleLabel.place(relx=0.022, rely=0.55)
+videoTitleLabel.place(relx=0.018, rely=0.55)
 videoDataLabel.place(relx=0.02, rely=0.75)
 
 #--------------------------------------------------
@@ -363,6 +361,7 @@ closePanelButton=ctk.CTkButton(master=urlPanel,
                                fg_color='transparent',
                                text='',
                                corner_radius=10,
+                               hover_color='#000000',
                                anchor='e',
                                image=cascadeDown,
                                height=5,

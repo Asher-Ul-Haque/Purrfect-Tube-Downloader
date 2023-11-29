@@ -5,7 +5,7 @@ import os
 class YoutubeObject:
     def __init__(self, url):
         self.url = url
-        self.yt = YouTube(url)
+        self.yt = YouTube(self.url)
         self.streams = self.yt.streams
         self.title = self.yt.title
         self.author = self.yt.author
@@ -56,10 +56,29 @@ class YoutubeObject:
     def getDisplayableTitle(self):
         words=self.title.split(' ')
         displayableTitle=''
+        # line1=''
+        # line2=''
+        # line3=''
+        # for wordIndex in words:
+        #     if len(line1)+len(words[wordIndex])<30:
+        #         line1+=words[wordIndex]+' '
+        #         words.pop(wordIndex)
+        #     elif len(line2)+len(words[wordIndex])<30:
+        #         line2+=words[wordIndex]+' '
+        #         words.pop(wordIndex)
+        #     elif len(line3)+len(words[wordIndex])<30:
+        #         line3+=words[wordIndex]+' '
+        #         words.pop(wordIndex)
+        # displayableTitle+=line1+'\n'+line2+'\n'+line3
+        # return displayableTitle
+
+        letters=0
         for word in words:
-            if len(displayableTitle)+len(word)>30:
+            if letters+len(word)>30:
                 displayableTitle+='\n'
+                letters=0
             displayableTitle += word+' '
+            letters+=len(word)+1
         if len(displayableTitle)>90:
             displayableTitle=displayableTitle[:87]+'...'
         return displayableTitle
