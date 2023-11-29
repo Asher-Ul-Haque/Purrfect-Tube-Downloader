@@ -8,7 +8,7 @@ import threading
 sys.path.append(os.path.abspath('../Backend'))
 sys.path.append(os.path.abspath('../Frontend'))
 sys.path.append(os.path.abspath('../Downloads'))
-from animated_sliding_panel import AnimatedPanel
+from animated_sliding_panel import AnimatedSlidePanel
 from youtube_object import YoutubeObject
 from youtube_stream import YoutubeStream
 try:
@@ -35,7 +35,7 @@ sun=Photo('sun.png').getImage(64,64)
 moon=Photo('moon.png').getImage(64,64)
 magnifyingGlass=Photo('magnifying_glass.png').getImage(64,64)
 thumbnailBackup=Photo('photo_backup.png').getImage(150, 150)
-cascadeDownwards=Photo('cascade_button.png').getImage(20, 20)
+cascadeDown=Photo('cascade_button.png').getImage(20, 20)
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -71,8 +71,6 @@ if not os.path.exists(downloadDirectory):
 downloadStack=[]
 searchPanelyPos = 0.6
 thumbnail=thumbnailBackup
-pos=1
-atStart=True
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -138,37 +136,32 @@ def animateHeading():
     else:
         root.after(100, doNothing)
         titleLabel.configure(text=title)
-
 animateHeading()
 
 #--------------------------------------------------
 #The search bar and button-
-def animateSearchPanel():
-    global atStart
-    def animateUpwards():
-        global searchPanelyPos
-        if searchPanelyPos>0.32:
-            searchPanelyPos-=0.01
-            searchButton.place(relx=0.9, rely=searchPanelyPos, anchor='center')
-            searchBar.place(relx=0.45, rely=searchPanelyPos, anchor='center')
-            root.after(8, animateUpwards)
-        else:
-            atStart=False
-    def animateDownwards():
-        global searchPanelyPos
-        if searchPanelyPos < 0.6:
-            searchPanelyPos += 0.01
-            searchButton.place(relx=0.9, rely=searchPanelyPos, anchor='center')
-            searchBar.place(relx=0.45, rely=searchPanelyPos, anchor='center')
-            root.after(8, animateDownwards())
-        else:
-            atStart = True
-    if atStart:
-        animateUpwards()
+def animateSearchPanelUpwards():
+    global searchPanelyPos
+    if searchPanelyPos > 0.32:
+        searchPanelyPos -= 0.008
+        searchButton.place(relx=0.9, rely=searchPanelyPos, anchor='center')
+        searchBar.place(relx=0.45, rely=searchPanelyPos, anchor='center')
+        root.after(5, animateSearchPanelUpwards)
+def animateSearchPanelDownwards():
+    global searchPanelyPos
+    print(searchPanelyPos)
+    if searchPanelyPos < 0.6:
+        searchPanelyPos += 0.008
+        searchButton.place(relx=0.9, rely=searchPanelyPos, anchor='center')
+        searchBar.place(relx=0.45, rely=searchPanelyPos, anchor='center')
+        root.after(5, animateSearchPanelDownwards)
     else:
-        animateDownwards()
-
-
+        searchBar.delete(0, 'end')
+        searchBar.focus_set()
+        thumbnailLabel.configure(image=thumbnailBackup)
+        videoTitleLabel.configure(text='')
+        videoDataLabel.configure(text='')
+        url=''
 
 def search(*args, **kwargs):
     def find():
@@ -179,27 +172,6 @@ def search(*args, **kwargs):
             video = YoutubeObject(url)
             path=video.downloadThumbnail()
             statusLabel.tkraise()
-
-            def forceUpSearchPanel():
-                global searchPanelyPos
-                if searchPanelyPos > 0.32:
-                    searchPanelyPos -= 0.01
-                    searchButton.place(relx=0.9, rely=searchPanelyPos, anchor='center')
-                    searchBar.place(relx=0.45, rely=searchPanelyPos, anchor='center')
-                    root.after(8, forceUpSearchPanel)
-            def forceOpenPanel():
-                global pos
-                print('Animating URL Panel upwards')
-                if pos >= 0.4:
-                    pos -= 0.01
-                    urlPanel.place(rely=pos, relwidth=1, relheight=0.6, relx=0)
-                    root.after(8, forceOpenPanel)
-            # try:
-            #     forceUpSearchPanel()
-            #     forceOpenPanel()
-            # except:
-            #     urlPanel.animateUpwards()
-
             if path!='Failed to fetch thumbnail':
                 thumbnail = Photo(path, maintainAspectRatio=True).getImage()
                 thumbnailLabel.configure(image=thumbnail)
@@ -212,6 +184,8 @@ def search(*args, **kwargs):
             videoTitleLabel.configure(text=video.getDisplayableTitle())
             videoDataLabel.configure(text=video.getDisplayData())
             print(downloadStack)
+            animateSearchPanelUpwards()
+            urlPanel.animateUpwards()
             videoStream = YoutubeStream(video.best, downloadDirectory).download()
             downloadStack.remove(video.getTitle())
             statusLabel.configure(text_color='#00ff00')
@@ -223,12 +197,8 @@ def search(*args, **kwargs):
 
     searchThread = threading.Thread(target=find)
     mascotAnimationThread = threading.Thread(target=animateMascot, kwargs={'infinite': False})
-    searchPanelAnimationThread= threading.Thread(target=animateSearchPanel)
-    urlPanelAnimationThread= threading.Thread(target=urlPanel.animate)
     searchThread.start()
     mascotAnimationThread.start()
-    searchPanelAnimationThread.start()
-    urlPanelAnimationThread.start()
 
 searchButton=ctk.CTkButton(master=root,
                            fg_color='transparent',
@@ -251,7 +221,7 @@ searchBar=ctk.CTkEntry(master=root,
                        width=500,
                        height=50,
                        placeholder_text='Enter the URL of the video',
-                       placeholder_text_color='#CD0000')
+                       placeholder_text_color='#BB0000')
 
 searchButton.place(relx=0.9, rely=0.6, anchor='center')
 searchBar.bind('<Return>', search)
@@ -340,7 +310,7 @@ homeButton.configure(command=goToHomePage)
 
 #THE URL RESULT PANEL-
 #This panel shows the results of the search of the URL
-urlPanel=AnimatedPanel(root, 1, 0.4, 'y')
+urlPanel=AnimatedSlidePanel(root, 1, 0.4)
 thumbnailLabel=ctk.CTkLabel(master=urlPanel,
                             image=thumbnailBackup,
                             text='',
@@ -350,7 +320,7 @@ thumbnailLabel=ctk.CTkLabel(master=urlPanel,
                             width=10,
                             height=10,
                             compound='left')
-urlPanel.configure(fg_color='transparent')
+urlPanel.configure(fg_color='transparent', corner_radius=5, border_color='red', border_width=5)
 thumbnailLabel.place(relx=0.17, rely=0.28, anchor='center')
 
 #--------------------------------------------------
@@ -372,43 +342,6 @@ videoDataLabel.place(relx=0.02, rely=0.75)
 
 #--------------------------------------------------
 
-def forceDownSearchPanel():
-    global searchPanelyPos
-    print(searchPanelyPos)
-    if searchPanelyPos <= 0.6:
-        searchPanelyPos += 0.01
-        searchButton.place(relx=0.9, rely=searchPanelyPos, anchor='center')
-        searchBar.place(relx=0.45, rely=searchPanelyPos, anchor='center')
-        root.after(8, forceDownSearchPanel)
-def forceClosePanel():
-    animateSearchPanel()
-    global pos
-    print('Animating URL Paneldownwards')
-    if pos < 1:
-        pos += 0.01
-        urlPanel.place(rely=pos, relwidth=1, relheight=0.6, relx=0)
-        root.after(8, forceClosePanel)
-
-def forceQuitVideo():
-    forceDownSearchPanel()
-    forceClosePanel()
-
-#close button
-closeURLPanelButton=ctk.CTkButton(master=urlPanel,
-                         fg_color='transparent',
-                         text='',
-                         corner_radius=10,
-                         hover_color='#000000',
-                         anchor='e',
-                         image=cascadeDownwards,
-                         width=5,
-                         height=5,
-                         compound='left',
-                         command=forceQuitVideo)
-closeURLPanelButton.place(relx=0.95, rely=0.05, anchor='center')
-
-#--------------------------------------------------
-
 #Side bar
 ctk.CTkLabel(master=urlPanel, text='', width=10, height=300, fg_color='red', bg_color='white').place(relx=0.33, rely=0.52, anchor='center')
 
@@ -416,6 +349,27 @@ ctk.CTkLabel(master=urlPanel, text='', width=10, height=300, fg_color='red', bg_
 
 #The download title
 ctk.CTkLabel(master=urlPanel, text_color='red', text='Download Options-', font=subHeadingFont, fg_color='transparent', anchor='center', justify='center').place(relx=0.65, rely=0.08, anchor='center')
+
+#--------------------------------------------------
+
+#The close Panel button
+def closePanel():
+    global url
+    urlPanel.animateDownwards()
+    animateSearchPanelDownwards()
+    statusLabel.tkraise()
+
+closePanelButton=ctk.CTkButton(master=urlPanel,
+                               fg_color='transparent',
+                               text='',
+                               corner_radius=10,
+                               anchor='e',
+                               image=cascadeDown,
+                               height=5,
+                               width=5,
+                               compound='left',
+                               command=closePanel)
+closePanelButton.place(relx=0.95, rely=0.1, anchor='center')
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 

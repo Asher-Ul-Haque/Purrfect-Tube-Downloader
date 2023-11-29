@@ -55,17 +55,14 @@ class YoutubeObject:
 
     def getDisplayableTitle(self):
         words=self.title.split(' ')
-        displayableTitleline1=''
-        displayableTitleline2=''
-        displayableTitleline3=''
+        displayableTitle=''
         for word in words:
-            if len(displayableTitleline1)+len(word)<30:
-                displayableTitleline1 += word+' '
-            elif len(displayableTitleline2)+len(word)<30:
-                displayableTitleline2 += word+' '
-            elif len(displayableTitleline3)+len(word)<30:
-                displayableTitleline3 += word+' '
-        return displayableTitleline1 + '\n'+ displayableTitleline2 + '\n'+ displayableTitleline3
+            if len(displayableTitle)+len(word)>30:
+                displayableTitle+='\n'
+            displayableTitle += word+' '
+        if len(displayableTitle)>90:
+            displayableTitle=displayableTitle[:87]+'...'
+        return displayableTitle
     def getDisplayData(self):
         minutes=0
         hours=0

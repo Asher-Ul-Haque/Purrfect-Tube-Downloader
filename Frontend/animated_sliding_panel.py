@@ -1,67 +1,75 @@
 import customtkinter as ctk
 
-class AnimatedPanel(ctk.CTkFrame):
-    def __init__(self, parent, startPos, endPos, orientation):
-        super().__init__(master=parent, fg_color='red', corner_radius=0, border_color='red', border_width=10)
+class AnimatedSlidePanel(ctk.CTkFrame):
+    def __init__(self, parent, startPos, endPos, orientation='y'):
+        super().__init__(master=parent,
+                         height=50,
+                         corner_radius=10,
+                         fg_color='red')
 
-        #general atributes
         self.startPos=startPos
         self.endPos=endPos
-        self.orientation=orientation
-
-        #animation logic
         self.pos=startPos
         self.atStart=True
+        self.orientation=orientation
 
         if self.orientation=='x':
-            self.width=abs(startPos-endPos)
-            self.place(relx=self.startPos, relwidth=self.width, relheight=0.7, rely=0.3)
-        elif self.orientation=='y':
-            self.height=abs(startPos-endPos)
-            self.place(rely=self.startPos, relwidth=1, relheight=self.height, relx=0)
-
-    def animate(self):
-        if self.atStart:
-            if self.orientation=='x':
-                self.animateRightwards()
-            else:
-                self.animateUpwards()
+            self.width = abs(endPos - startPos)
+            self.place(relx=self.startPos, y=75, relwidth=self.width)
         else:
-            if self.orientation=='x':
-                self.animateLeftwards()
-            else:
-                self.animateDownwards()
+            self.height=abs(endPos-startPos)
+            self.place(rely=self.startPos, relx=0, relheight=self.height, relwidth=1)
+
+    def animateX(self):
+        if self.atStart:
+            self.animateLeftwards()
+        else:
+            self.animateRightwards()
 
     def animateLeftwards(self):
-        if self.pos>self.endPos:
-            self.pos-=0.01
-            self.place(relx=self.pos, relwidth=self.width, relheight=0.7, rely=0.3)
-            self.after(8, self.animateLeftwards)
+        if self.pos > self.endPos:
+            self.pos -=0.008
+            self.place(relx=self.pos, relwidth=self.width, relheight=0.8)
+            self.after(5, self.animateLeftwards)
         else:
             self.atStart=False
 
+    def getRelPos(self):
+        return self.pos
+
+
     def animateRightwards(self):
-        if self.pos<self.endPos:
-            self.pos+=0.01
-            self.place(relx=self.pos, relwidth=self.width, relheight=0.7, rely=0.3)
-            self.after(8, self.animateRightwards)
+        if self.pos < self.startPos:
+            self.pos +=0.008
+            self.place(relx=self.pos, rely=0, relwidth=self.width, relheight=0.8)
+            self.after(5, self.animateRightwards)
         else:
             self.atStart=True
 
+    def animateY(self):
+        if self.atStart:
+            self.animateUpwards()
+        else:
+            self.animateDownwards()
+
     def animateUpwards(self):
-        print('Animating upwards')
-        if self.pos>self.endPos:
-            self.pos-=0.01
-            self.place(rely=self.pos, relwidth=1, relheight=self.height, relx=0)
-            self.after(8, self.animateUpwards)
+        if self.pos > self.endPos:
+            self.pos -=0.008
+            self.place(rely=self.pos, relheight=self.height)
+            self.after(5, self.animateUpwards)
         else:
             self.atStart=False
 
     def animateDownwards(self):
-        print('Animating downwards')
-        if self.pos < self.endPos:
-            self.pos += 0.01
-            self.place(rely=self.pos, relwidth=1, relheight=self.height, relx=0)
-            self.after(8, self.animateUpwards)
+        if self.pos < self.startPos:
+            self.pos +=0.008
+            self.place(rely=self.pos, relheight=self.height)
+            self.after(5, self.animateDownwards)
         else:
-            self.atStart = True
+            self.atStart=True
+
+    def animate(self):
+        if self.orientation=='x':
+            self.animateX()
+        else:
+            self.animateY()
