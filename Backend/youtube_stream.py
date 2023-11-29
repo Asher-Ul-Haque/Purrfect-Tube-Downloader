@@ -1,3 +1,4 @@
+import os
 class YoutubeStream:
     def __init__(self, stream, downloadPath):
         self.stream = stream
@@ -18,6 +19,9 @@ class YoutubeStream:
 
     def download(self, progressFunction=None):
         self.stream.download(output_path=self.downloadPath, skip_existing=False, max_retries=3)
+
+    def cancelDownload(self):
+        self.stream.cancel()
 
     def getStream(self):
         return self.stream
@@ -54,4 +58,23 @@ class YoutubeStream:
 
     def getFilesize(self):
         return self.filesize
+
+    def getDownloadPath(self):
+        return self.downloadPath
+
+    def getDisplayableSize(self):
+        sizeBytes = os.path.getsize(self.downloadPath)
+        units = ['B', 'KB', 'MB', 'GB']
+        unitsIndex = 0
+        while sizeBytes > 1024 and unitsIndex < len(units) - 1:
+            sizeBytes /= 1024.0
+            unitsIndex += 1
+        sizeFormatted = "{:.1f} {}".format(sizeBytes, units[unitsIndex])
+        return sizeFormatted
+
+    def getProgress(self):
+        sizeBytes = os.path.getsize(self.downloadPath)
+        return f'{sizeBytes/self.filesize*100:.1f}%'
+
+
 
