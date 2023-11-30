@@ -36,6 +36,8 @@ moon=Photo('moon.png').getImage(64,64)
 magnifyingGlass=Photo('magnifying_glass.png').getImage(64,64)
 thumbnailBackup=Photo('photo_backup.png').getImage(150, 150)
 cascadeDown=Photo('cascade_button.png').getImage(20, 20)
+downloadImage=Photo('download_button.png').getImage(64, 64)
+cancelImage=Photo('cancel_button.png').getImage(64, 64)
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -62,13 +64,17 @@ mode='dark'
 aspectRatio=5/4
 title='Purrfect Tube\nDownloader'
 statusBarText=ctk.StringVar(value='Status: Free')
+downloadType=ctk.StringVar(value='Choose Download Type')
+resolutionChoice=ctk.StringVar(value='Choose Resolution')
 animatedTitle=''
 cursor=0
 url=''
 downloadDirectory = os.path.abspath('../Downloads')
 if not os.path.exists(downloadDirectory):
     os.makedirs(downloadDirectory)
+downloadDirectory = os.path.abspath('../Downloads')
 downloadStack=[]
+streamStack=[]
 searchPanelyPos = 0.6
 thumbnail=thumbnailBackup
 
@@ -123,7 +129,7 @@ titleLabel=ctk.CTkLabel(text='SAMPLE',
                         master=root,
                         text_color='red')
 titleLabel.pack(side='top', pady=20)
-def doNothing():
+def doNothing(*args):
     pass
 
 def animateHeading():
@@ -176,13 +182,13 @@ def search(*args, **kwargs):
                 statusLabel.configure(text_color='#ff0000')
             statusBarText.set(f'Status: Downloading {video.getTitle()}')
             statusLabel.configure(text_color='#00ff00')
-            downloadStack.append(video.getTitle())
             videoTitleLabel.configure(text=video.getDisplayableTitle())
             videoDataLabel.configure(text=video.getDisplayData())
             print(downloadStack)
             animateSearchPanelUpwards()
             urlPanel.animateUpwards()
             videoStream = YoutubeStream(video.best, downloadDirectory).download()
+            downloadStack.append(videoStream)
             downloadStack.remove(video.getTitle())
             statusLabel.configure(text_color='#00ff00')
             statusBarText.set('Status: Download Complete')
@@ -369,6 +375,95 @@ closePanelButton=ctk.CTkButton(master=urlPanel,
                                compound='left',
                                command=closePanel)
 closePanelButton.place(relx=0.95, rely=0.1, anchor='center')
+
+#--------------------------------------------------
+#The download configuration Menus
+def setDownloadType(choice):
+    global downloadType
+    downloadType.set(choice)
+    if choice=='Audio Only':
+        resolutionMenu.place_forget()
+        downloadTypeMenu.place(relx=0.65, rely=0.35, anchor='center')
+        downloadTypeMenu.configure(fg_color='#1DB954', button_color='#199C4B')
+    else:
+        resolutionMenu.place(relx=0.83, rely=0.35, anchor='center')
+        downloadTypeMenu.place(relx=0.53, rely=0.35, anchor='center')
+        downloadTypeMenu.configure(fg_color='red', button_color='#8B0000')
+    
+downloadTypeMenu=ctk.CTkOptionMenu(master=urlPanel,
+                                   values=['Video+Audio', 'Audio Only', 'Video Only'],
+                                   command=setDownloadType,
+                                   variable=downloadType,
+                                   text_color='white',
+                                   font=textFont,
+                                   dropdown_font=textFont,
+                                   dropdown_fg_color='#8B0000',
+                                   dropdown_hover_color='red',
+                                   dropdown_text_color='white',
+                                   width=150,
+                                   height=30,
+                                   corner_radius=5,
+                                   fg_color='red',
+                                   button_color='#8B0000',
+                                   hover=False,
+                                   anchor='center')
+resolutionMenu=ctk.CTkOptionMenu(master=urlPanel,
+                                   values=['SD', 'HD', '4k'],
+                                   command=doNothing,
+                                   variable=resolutionChoice,
+                                   text_color='white',
+                                   font=textFont,
+                                   dropdown_font=textFont,
+                                   dropdown_fg_color='#8B0000',
+                                   dropdown_hover_color='red',
+                                   dropdown_text_color='white',
+                                   width=150,
+                                   height=30,
+                                   corner_radius=5,
+                                   fg_color='red',
+                                   button_color='#8B0000',
+                                   button_hover_color='#8B0000',
+                                   anchor='center')
+downloadTypeMenu.place(relx=0.53, rely=0.35, anchor='center')
+resolutionMenu.place(relx=0.83, rely=0.35, anchor='center')
+
+#--------------------------------------------------
+
+#The download button
+def cancelADownload():
+    downloadButton.configure(image=downloadImage, text='Download', command=downloadAStream)
+    progressBar.place_forget()
+
+def downloadAStream():
+    downloadButton.configure(image=cancelImage, text='Cancel', command=cancelADownload)
+    progressBar.place(relx=0.65, rely=0.85, anchor='center')
+
+downloadButton=ctk.CTkButton(master=urlPanel,
+                             fg_color='red',
+                             text='Download',
+                             text_color='white',
+                             corner_radius=10,
+                             hover_color='red',
+                             font=subHeadingFont,
+                             anchor='e',
+                             image=downloadImage,
+                             height=20,
+                             width=50,
+                             compound='left',
+                             command=downloadAStream)
+downloadButton.place(relx=0.65, rely=0.6, anchor='center')
+
+#--------------------------------------------------
+
+#Progress bar and label:
+progressBar=ctk.CTkProgressBar(master=urlPanel,
+                               fg_color='white',
+                               width=300,
+                               height=15,
+                               corner_radius=10,
+                               progress_color='red',
+                               orientation='horizontal')
+progressBar.set(0.5)
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
