@@ -1,7 +1,7 @@
 <H1><b><center>WELCOME TO PURRFECT TUBE</center></b></H1>
 <H1><i>
   
-  PLEASE GO TO THE WIKI OR [HERE](https://github.com/Asher-Ul-Haque/Purrfect-Tube-Downloader/wiki)
+  PLEASE GO TO THE [WIKI](https://github.com/Asher-Ul-Haque/Purrfect-Tube-Downloader/wiki)
 
 </i></H1>
 
