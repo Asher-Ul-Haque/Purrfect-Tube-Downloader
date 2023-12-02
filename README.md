@@ -1,7 +1,13 @@
-<H1><b><center>WELCOME TO PURRFECT TUBE WIKI</center></b></H1>
+<H1><b><center>WELCOME TO PURRFECT TUBE</center></b></H1>
+<H1><i>
+  
+  PLEASE GO TO THE WIKI OR [HERE](https://github.com/Asher-Ul-Haque/Purrfect-Tube-Downloader/wiki)
+
+</i></H1>
 
 ***
-<H2>Here you can find the following:-</H2>
+
+<H2>There you can find the following:-</H2>
 <H3>
 1. A list of app's features<br>
 2. How to use the app <br>
