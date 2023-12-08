@@ -8,10 +8,11 @@ class Photo(object):
         self.path=os.path.join(self.imageDirectory, imageName)
         self.imageRaw=Image.open(self.path)
         self.originalWidth, self.originalHeight = self.imageRaw.size
-        self.originalAspectRatio= width / height
-        self.image=ctk.CTkImage(self.imageRaw, size=(height, width))
-        self.height=height
-        self.width=width
+        self.height = int(height)
+        self.width = int(width)
+        self.originalAspectRatio= self.width / self.height
+        self.image=ctk.CTkImage(self.imageRaw, size=(self.height, self.width))
+
         self.maintainAspectRatio=maintainAspectRatio
     def getImagePath(self):
         return self.path
@@ -23,11 +24,8 @@ class Photo(object):
         return self.width
     def getImageRaw(self):
         return self.imageRaw
-    def getImage(self, height=100, width=100):
+    def getImage(self):
         if self.maintainAspectRatio:
             self.width=150
-            self.height=self.width/self.originalAspectRatio
-        else:
-            self.height=height
-            self.width=width
+            self.height=int(self.width/self.originalAspectRatio)
         return ctk.CTkImage(self.imageRaw, size=(self.height, self.width))

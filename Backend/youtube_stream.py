@@ -17,11 +17,8 @@ class YoutubeStream:
         self.type = stream.type
         self.downloadPath=downloadPath
 
-    def download(self, progressFunction=None):
+    def download(self):
         self.stream.download(output_path=self.downloadPath, skip_existing=False, max_retries=3)
-
-    def cancelDownload(self):
-        self.stream.cancel()
 
     def getStream(self):
         return self.stream

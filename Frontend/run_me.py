@@ -27,17 +27,17 @@ displayTextFont=('Cooper Black', 10)
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 #IMAGES-
-whiteCat=Photo('white_cat.png').getImage()
-whiteCatBlink=Photo('white_cat_blink.png').getImage()
-blueCat=Photo('blue_cat.png').getImage()
-blueCatBlink=Photo('blue_cat_blink.png').getImage()
-sun=Photo('sun.png').getImage(64,64)
-moon=Photo('moon.png').getImage(64,64)
-magnifyingGlass=Photo('magnifying_glass.png').getImage(64,64)
-thumbnailBackup=Photo('photo_backup.png').getImage(150, 150)
-cascadeDown=Photo('cascade_button.png').getImage(20, 20)
-downloadImage=Photo('download_button.png').getImage(64, 64)
-cancelImage=Photo('cancel_button.png').getImage(64, 64)
+whiteCat=Photo('white_cat.png',100, width=100).getImage()
+whiteCatBlink=Photo('white_cat_blink.png', 100, 100).getImage()
+blueCat=Photo('blue_cat.png', 100, 100).getImage()
+blueCatBlink=Photo('blue_cat_blink.png', 100, 100).getImage()
+sun=Photo('sun.png',64,64).getImage()
+moon=Photo('moon.png',64,64).getImage()
+magnifyingGlass=Photo('magnifying_glass.png',64,64).getImage()
+thumbnailBackup=Photo('photo_backup.png',150, 150).getImage()
+cascadeDown=Photo('cascade_button.png',20, 20).getImage()
+downloadImage=Photo('download_button.png',64, 64).getImage()
+cancelImage=Photo('cancel_button.png',64, 64).getImage()
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -70,6 +70,7 @@ animatedTitle=''
 cursor=0
 url=''
 downloadDirectory = os.path.abspath('../Downloads')
+#remove once begin asking users for download location
 if not os.path.exists(downloadDirectory):
     os.makedirs(downloadDirectory)
 downloadDirectory = os.path.abspath('../Downloads')
@@ -132,6 +133,10 @@ titleLabel.pack(side='top', pady=20)
 def doNothing(*args):
     pass
 
+def completeDownload(*args):
+    statusLabel.configure(text_color='#00ff00')
+    statusBarText.set('Status: Download Complete')
+
 def animateHeading():
     global animatedTitle, title, cursor
     if animatedTitle!=title:
@@ -170,33 +175,41 @@ def search(*args, **kwargs):
         global url, thumbnail
         url = searchBar.get()
         try:
+            #set status to searching
             statusBarText.set('Status: Searching')
-            video = YoutubeObject(url)
-            path=video.downloadThumbnail()
-            statusLabel.tkraise()
-            if path!='Failed to fetch thumbnail':
-                thumbnail = Photo(path, maintainAspectRatio=True).getImage()
+
+            #find video-
+            video = YoutubeObject(url, doNothing, completeDownload)
+
+            #download thumbnail
+            thumbnailPath=video.downloadThumbnail()
+            if thumbnailPath!='Failed to fetch thumbnail':
+                thumbnail = Photo(thumbnailPath, maintainAspectRatio=True).getImage()
                 thumbnailLabel.configure(image=thumbnail)
             else:
                 statusBarText.set('Status: Failed to fetch thumbnail')
                 statusLabel.configure(text_color='#ff0000')
-            statusBarText.set(f'Status: Downloading {video.getTitle()}')
-            statusLabel.configure(text_color='#00ff00')
+
+            #Set the video data
             videoTitleLabel.configure(text=video.getDisplayableTitle())
             videoDataLabel.configure(text=video.getDisplayData())
-            print(downloadStack)
+
+            #Start the animations
             animateSearchPanelUpwards()
             urlPanel.animateUpwards()
-            videoStream = YoutubeStream(video.best, downloadDirectory).download()
+            statusLabel.tkraise()
+            statusBarText.set('Status: Free')
+
+            #Add to the download stack
+            videoStream = YoutubeStream(video.best, downloadDirectory)
             downloadStack.append(videoStream)
-            downloadStack.remove(video.getTitle())
-            statusLabel.configure(text_color='#00ff00')
-            statusBarText.set('Status: Download Complete')
+
+        #Video not found
         except:
             statusBarText.set('Status: Not a valid youtube URL')
             statusLabel.configure(text_color='#ff0000')
 
-
+    #define the threads for animation and search
     searchThread = threading.Thread(target=find)
     mascotAnimationThread = threading.Thread(target=animateMascot, kwargs={'infinite': False})
     searchThread.start()
@@ -236,14 +249,14 @@ def modeChange():
     global mode, modeButton
     if mode=='light':
         mode='dark'
-        modeButton.configure(image=moon, hover_color='#000000')
-        root.configure(fg_color='#000000')
-        homeButton.configure(hover_color='#000000')
-        searchBar.configure(fg_color='#dddddd')
-        searchButton.configure(hover_color='#000000')
-        closePanelButton.configure(hover_color='#000000')
         if 'Free' in statusBarText.get() or 'Searching' in statusBarText.get():
             statusLabel.configure(text_color='white')
+        modeButton.configure(image=moon, hover_color='#000000')
+        closePanelButton.configure(hover_color='#000000')
+        searchButton.configure(hover_color='#000000')
+        homeButton.configure(hover_color='#000000')
+        searchBar.configure(fg_color='#dddddd')
+        root.configure(fg_color='#000000')
         try:
             HWND = windll.user32.GetParent(root.winfo_id())
             windll.dwmapi.DwmSetWindowAttribute(HWND, 35, byref(c_int(0x000000)), sizeof(c_int))
@@ -251,14 +264,14 @@ def modeChange():
             pass
     else:
         mode='light'
-        closePanelButton.configure(hover_color='#ffffff')
-        modeButton.configure(image=sun, hover_color='#ffffff')
-        root.configure(fg_color='#ffffff')
-        homeButton.configure(hover_color='#ffffff')
-        searchBar.configure(fg_color='#ffffff')
-        searchButton.configure(hover_color='#ffffff')
         if 'Free' in statusBarText.get() or 'Searching' in statusBarText.get():
             statusLabel.configure(text_color='black')
+        modeButton.configure(image=sun, hover_color='#ffffff')
+        closePanelButton.configure(hover_color='#ffffff')
+        searchButton.configure(hover_color='#ffffff')
+        homeButton.configure(hover_color='#ffffff')
+        searchBar.configure(fg_color='#ffffff')
+        root.configure(fg_color='#ffffff')
         try:
             HWND = windll.user32.GetParent(root.winfo_id())
             windll.dwmapi.DwmSetWindowAttribute(HWND, 35, byref(c_int(0x0000FF)), sizeof(c_int))
@@ -298,7 +311,7 @@ def statusBarClear():
             statusLabel.configure(text_color='black')
         else:
             statusLabel.configure(text_color='white')
-    root.after(7000, statusBarClear)
+    root.after(5000, statusBarClear)
 
 statusLabel.place(relx=0.5, rely=0.975, anchor='center')
 statusBarClear()
@@ -342,12 +355,12 @@ videoDataLabel=ctk.CTkLabel(master=urlPanel,
                         anchor='w',
                         justify='left')
 videoTitleLabel.place(relx=0.018, rely=0.55)
-videoDataLabel.place(relx=0.02, rely=0.75)
+videoDataLabel.place(relx=0.02, rely=0.7)
 
 #--------------------------------------------------
 
 #Side bar
-ctk.CTkLabel(master=urlPanel, text='', width=10, height=300, fg_color='red', bg_color='white').place(relx=0.33, rely=0.52, anchor='center')
+ctk.CTkLabel(master=urlPanel, text='', width=8, height=296, fg_color='red').place(relx=0.33, rely=0.499, anchor='center')
 
 #--------------------------------------------------
 
@@ -382,16 +395,16 @@ def setDownloadType(choice):
     global downloadType
     downloadType.set(choice)
     if choice=='Audio Only':
-        resolutionMenu.place_forget()
-        downloadTypeMenu.place(relx=0.65, rely=0.35, anchor='center')
         downloadTypeMenu.configure(fg_color='#1DB954', button_color='#199C4B')
+        downloadTypeMenu.place(relx=0.65, rely=0.35, anchor='center')
+        resolutionMenu.place_forget()
     else:
-        resolutionMenu.place(relx=0.83, rely=0.35, anchor='center')
-        downloadTypeMenu.place(relx=0.53, rely=0.35, anchor='center')
         downloadTypeMenu.configure(fg_color='red', button_color='#8B0000')
-    
+        downloadTypeMenu.place(relx=0.53, rely=0.35, anchor='center')
+        resolutionMenu.place(relx=0.83, rely=0.35, anchor='center')
+
 downloadTypeMenu=ctk.CTkOptionMenu(master=urlPanel,
-                                   values=['Video+Audio', 'Audio Only', 'Video Only'],
+                                   values=['Video+Audio', 'Video Only', 'Audio Only'],
                                    command=setDownloadType,
                                    variable=downloadType,
                                    text_color='white',
@@ -407,6 +420,7 @@ downloadTypeMenu=ctk.CTkOptionMenu(master=urlPanel,
                                    button_color='#8B0000',
                                    hover=False,
                                    anchor='center')
+
 resolutionMenu=ctk.CTkOptionMenu(master=urlPanel,
                                    values=['SD', 'HD', '4k'],
                                    command=doNothing,
@@ -424,6 +438,7 @@ resolutionMenu=ctk.CTkOptionMenu(master=urlPanel,
                                    button_color='#8B0000',
                                    button_hover_color='#8B0000',
                                    anchor='center')
+
 downloadTypeMenu.place(relx=0.53, rely=0.35, anchor='center')
 resolutionMenu.place(relx=0.83, rely=0.35, anchor='center')
 
@@ -431,19 +446,29 @@ resolutionMenu.place(relx=0.83, rely=0.35, anchor='center')
 
 #The download button
 def cancelADownload():
-    downloadButton.configure(image=downloadImage, text='Download', command=downloadAStream)
+    downloadButton.configure(image=downloadImage, text='Download', command=downloadAStream, fg_color='#1DB954', hover_color='#1DB954')
     progressBar.place_forget()
 
 def downloadAStream():
-    downloadButton.configure(image=cancelImage, text='Cancel', command=cancelADownload)
+    global downloadStack
+    #Set the download button to cancel
+    downloadButton.configure(image=cancelImage, text='Cancel', command=cancelADownload, fg_color='red', hover_color='red')
     progressBar.place(relx=0.65, rely=0.85, anchor='center')
+    video=downloadStack.pop()
+    # work on the statusLabel when download starts
+    statusLabel.tkraise()
+    statusBarText.set(f'Status: Downloading {video.getTitle()}')
+    statusLabel.configure(text_color='#00ff00')
+    #begin the download
+    downloadThread=threading.Thread(target=video.download)
+    downloadThread.start()
 
 downloadButton=ctk.CTkButton(master=urlPanel,
-                             fg_color='red',
+                             fg_color='#1DB954',
                              text='Download',
                              text_color='white',
                              corner_radius=10,
-                             hover_color='red',
+                             hover_color='#1DB954',
                              font=subHeadingFont,
                              anchor='e',
                              image=downloadImage,
@@ -459,7 +484,7 @@ downloadButton.place(relx=0.65, rely=0.6, anchor='center')
 progressBar=ctk.CTkProgressBar(master=urlPanel,
                                fg_color='white',
                                width=300,
-                               height=15,
+                               height=10,
                                corner_radius=10,
                                progress_color='red',
                                orientation='horizontal')
