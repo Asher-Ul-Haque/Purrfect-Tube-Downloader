@@ -1,6 +1,10 @@
 import os
+import threading
+from pytube import request
+import time
 class YoutubeStream:
-    def __init__(self, stream, downloadPath):
+    def __init__(self, stream, directoryPath):
+        self.cancelled = False
         self.stream = stream
         self.title = stream.title
         self.codecs = stream.codecs
@@ -15,10 +19,30 @@ class YoutubeStream:
         self.mime_type = stream.mime_type
         self.abr = stream.abr
         self.type = stream.type
-        self.downloadPath=downloadPath
+        self.directoryPath = directoryPath
+        self.downloadPath = os.path.join(self.directoryPath, self.title + '.mp4')
 
-    def download(self):
-        self.stream.download(output_path=self.downloadPath, skip_existing=False, max_retries=3)
+    def downloadVideo(self):
+        self.cancelled = False
+        with open(self.downloadPath, 'wb') as f:
+            is_cancelled = False
+            stream = request.stream(self.stream.url)
+            while True:
+                if self.cancelled:
+                    print('Download cancelled')
+                    break
+                chunk = next(stream, None)
+                if chunk:
+                    f.write(chunk)
+                else:
+                    print('Download completed')
+                    break
+
+    def cancelDownload(self):
+        self.cancelled = True
+        time.sleep(1)
+        os.remove(self.downloadPath)
+        print('File deleted')
 
     def getStream(self):
         return self.stream
