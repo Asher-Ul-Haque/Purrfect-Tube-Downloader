@@ -197,7 +197,15 @@ def search(*args, **kwargs):
             statusBarText.set('Status: Searching')
 
             #find video-
-            video = YoutubeObject(url)
+            try:
+                video = YoutubeObject(url)
+                time.sleep(1)
+            except:
+                try:
+                    video = YoutubeObject(url)
+                    time.sleep(1)
+                except:
+                    pass
 
             #download thumbnail
             thumbnailPath=video.downloadThumbnail()
@@ -223,7 +231,7 @@ def search(*args, **kwargs):
 
         #Video not found
         except:
-            statusBarText.set('Status: Not a valid youtube URL')
+            statusBarText.set('Status: Failed to find, please check the URL or internet connection')
             statusLabel.configure(text_color='#ff0000')
 
     #define the threads for animation and search
@@ -322,7 +330,7 @@ statusLabel=ctk.CTkLabel(font=textFont,
 
 def statusBarClear():
     global statusBarText
-    statusBarFreeValues=['Status: Searching', 'Status: Failed to fetch thumbnail', 'Status: Not a valid youtube URL', 'Status: Sorry, No streams found', 'Status: Choose Download Type, please', 'Status: Choose Download Type and Resolution, please', 'Status: No stream found', 'Status: Download cancelled', 'Status: Choose Resolution, please',  'Status: Opening File', 'Status: Failed to open file', 'Status: Download cancelled']
+    statusBarFreeValues=['Status: Searching', 'Status: Not a valid youtube URL', 'Status: Sorry, No streams found', 'Status: Choose Download Type, please', 'Status: Choose Download Type and Resolution, please', 'Status: No stream found', 'Status: Download cancelled', 'Status: Choose Resolution, please',  'Status: Opening File', 'Status: Failed to open file', 'Status: Download cancelled', 'Status: Failed to find, please check the URL or internet connection', 'Status: Failed to fetch thumbnail']
     if statusBarText.get() in statusBarFreeValues or 'Complete' in statusBarText.get():
         statusBarText.set('Status: Free')
         if mode=='light':
