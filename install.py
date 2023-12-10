@@ -49,8 +49,6 @@ try:
                 if system_platform == "Darwin":  # macOS
                     root.destroy()
                     subprocess.run(["open", os.path.join(frontendDirectory, 'Purrfect_Tube_Downloader.py')])
-                else:
-                    print("Unsupported operating system")
             except:
                 try:
                     os.system('python -m Purrfect_Tube_Downloader.py')
@@ -62,8 +60,6 @@ try:
                         if system_platform == "Darwin":  # macOS
                             subprocess.run(["open", os.path.join(frontendDirectory, 'Purrfect_Tube_Downloader.py')])
                             root.destroy()
-                        else:
-                            print("Unsupported operating system")
                     except:
                         progressLabel.configure(text='Failed to open, open the Frontend folder and open manually')
                         progressLabel.place(relx=0.5, anchor='center')

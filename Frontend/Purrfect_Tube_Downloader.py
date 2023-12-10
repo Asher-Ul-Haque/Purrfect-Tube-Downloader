@@ -179,7 +179,6 @@ def animateSearchPanelUpwards():
         root.after(5, animateSearchPanelUpwards)
 def animateSearchPanelDownwards():
     global searchPanelyPos
-    print(searchPanelyPos)
     if searchPanelyPos < 0.6:
         searchPanelyPos += 0.008
         searchButton.place(relx=0.9, rely=searchPanelyPos, anchor='center')
@@ -425,7 +424,6 @@ def setDownloadType(choice):
             resolutionList=videoStack[-1].getResolutions(videoOnly=True)
         else:
             resolutionList=videoStack[-1].getResolutions()
-        print(resolutionList)
         if resolutionList==[]:
             statusBarText.set('Status: Sorry, No streams found')
             statusLabel.configure(text_color='#ff0000')
@@ -578,10 +576,7 @@ progressBar.set(0)
 #--------------------------------------------------
 
 #OpenDecisionSlider
-def chooseOpenWhenDone():
-    print(openWhenDone.get())
-
-openWhenDoneSwitch = ctk.CTkSwitch(urlPanel, text="", command=chooseOpenWhenDone, variable=openWhenDone, onvalue="on", offvalue="off", button_color='#1DB954', progress_color='#14906A', button_hover_color='#1DB954')
+openWhenDoneSwitch = ctk.CTkSwitch(urlPanel, text="", variable=openWhenDone, onvalue="on", offvalue="off", button_color='#1DB954', progress_color='#14906A', button_hover_color='#1DB954')
 openWhenDoneLabel = ctk.CTkLabel(urlPanel, text="Open when done", font=displayTextFont, fg_color='transparent', text_color='#1DB954', anchor='center')
 openWhenDoneSwitch.place(relx=0.8, rely=0.77, anchor='center')
 openWhenDoneLabel.place(relx=0.6, rely=0.77, anchor='center')

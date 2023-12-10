@@ -31,7 +31,6 @@ class YoutubeStream:
             stream = request.stream(self.stream.url)
             while True:
                 if self.cancelled:
-                    print('Download cancelled')
                     break
                 chunk = next(stream, None)
                 if chunk:
@@ -42,7 +41,6 @@ class YoutubeStream:
                     self.currentSize += len(chunk)
                     f.write(chunk)
                 else:
-                    print('Download completed')
                     if self.completionCallback==None:
                         pass
                     else:
@@ -53,7 +51,6 @@ class YoutubeStream:
         self.cancelled = True
         time.sleep(1)
         os.remove(self.downloadPath)
-        print('File deleted')
 
     def getStream(self):
         return self.stream
