@@ -498,7 +498,7 @@ def updateProgressBar():
             if len(title)>45:
                 title=title[:42]+'...'
             statusBarText.set(f'Status: Downloading {title}  |  {streamStack[-1].getProgressPercentage()} | {streamStack[-1].getDisplayableSize()}/{streamStack[-1].getDisplayableFileSize()}')
-        root.after(100, updateProgressBar)
+        root.after(1, updateProgressBar)
 
 def downloadAStream():
     global streamStack, downloadDirectory, completeDownload

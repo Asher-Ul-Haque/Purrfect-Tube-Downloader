@@ -10,16 +10,16 @@ try:
     os.chdir(frontendDirectory)
     # Install dependencies
     try:
-        os.system('pip install customtkinter tk')
+        os.system('pip install customtkinter tk packaging Pillow')
     except:
         try:
-            os.system('pip3 install customtkinter tk')
+            os.system('pip3 install customtkinter tk packaging Pillow')
         except:
             try:
-                os.system('python -m pip install customtkinter tk')
+                os.system('python -m pip install customtkinter tk packaging Pillow')
             except:
                 try:
-                    os.system('python -m pip3 install customtkinter tk')
+                    os.system('python -m pip3 install customtkinter tk packaging Pillow')
                 except:
                     print('Failed to install dependencies')
                     exit()
@@ -62,6 +62,7 @@ try:
                             root.destroy()
                     except:
                         progressLabel.configure(text='Failed to open, open the Frontend folder and open manually')
+
                         progressLabel.place(relx=0.5, anchor='center')
                         return False
 
@@ -71,22 +72,27 @@ try:
         success=0
         progressLabel.place(relx=0.5, rely=0.85, anchor='center')
         try:
+            progressLabel.configure(text='Installing...')
             os.system('pip install -r requirements.txt')
             success=1
         except:
             try:
+                progressLabel.configure(text='Installing...')
                 os.system('pip3 install -r requirements.txt')
                 success=1
             except:
                 try:
+                    progressLabel.configure(text='Installing...')
                     os.system('python -m pip install -r requirements.txt')
                     success=1
                 except:
                     try:
+                        progressLabel.configure(text='Installing...')
                         os.system('python -m pip3 install -r requirements.txt')
                         success=1
                     except:
                         print('Failed to install dependencies')
+                        success=0
         if success==0:
             progressLabel.configure(text='Failed to install, try again or contact developer')
 
@@ -214,7 +220,8 @@ try:
     installButton=ctk.CTkButton(root, text='Install', fg_color='red', font=('Cooper Black', 16), hover_color='#cc0000', text_color='white', command=install)
     installButton.place(relx=0.5, rely=0.85, anchor='center')
 
-    progressLabel=ctk.CTkLabel(root, text='Installing...', fg_color='transparent', text_color='red', font=('Cooper Black', 16))
+    progressLabel=ctk.CTkLabel(root, text='She helps install the app', fg_color='transparent', text_color='red', font=('Cooper Black', 16))
+    progressLabel.place(relx=0.5, rely=0.95, anchor='center')
 
     def animate():
         import random
@@ -229,5 +236,4 @@ try:
 except Exception as e:
     print('Sorry, your OS may not be supported')
     print(f'Error: {e}')
-
 
