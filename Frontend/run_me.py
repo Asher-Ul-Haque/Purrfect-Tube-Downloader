@@ -1,4 +1,6 @@
 #IMPORTS-
+import time
+
 import customtkinter as ctk
 import random
 import os
@@ -11,6 +13,7 @@ sys.path.append(os.path.abspath('../Downloads'))
 from animated_sliding_panel import AnimatedSlidePanel
 from youtube_object import YoutubeObject
 from youtube_stream import YoutubeStream
+from tkinter.filedialog import asksaveasfilename
 try:
     from ctypes import windll, byref, sizeof, c_int
 except:
@@ -66,15 +69,11 @@ title='Purrfect Tube\nDownloader'
 statusBarText=ctk.StringVar(value='Status: Free')
 downloadType=ctk.StringVar(value='Choose Download Type')
 resolutionChoice=ctk.StringVar(value='Choose Resolution')
+openWhenDone = ctk.StringVar(value="off")
 animatedTitle=''
 cursor=0
 url=''
-downloadDirectory = os.path.abspath('../Downloads')
-#remove once begin asking users for download location
-if not os.path.exists(downloadDirectory):
-    os.makedirs(downloadDirectory)
-downloadDirectory = os.path.abspath('../Downloads')
-downloadStack=[]
+videoStack=[]
 streamStack=[]
 searchPanelyPos = 0.6
 thumbnail=thumbnailBackup
@@ -134,8 +133,28 @@ def doNothing(*args):
     pass
 
 def completeDownload(*args):
+    time.sleep(1)
     statusLabel.configure(text_color='#00ff00')
-    statusBarText.set('Status: Download Complete')
+    title=videoStack[-1].getTitle()
+    if len(title)>55:
+        title=title[:52]+'...'
+    statusBarText.set(f'Status: Download Complete:- {title}')
+    downloadButton.configure(fg_color='#1DB954', text='Download', text_color='white', hover_color='#1DB954', font=subHeadingFont, anchor='e', image=downloadImage, height=20, width=50, compound='left', command=downloadAStream)
+    progressBar.place_forget()
+    statusBarText.set('Status: Opening File')
+    statusLabel.configure(text_color='#00ff00')
+    if openWhenDone.get()=='on':
+        try:
+            os.startfile(streamStack[-1].downloadPath)
+        except:
+            try:
+                import subprocess
+                subprocess.call(['open', streamStack[-1].downloadPath])
+            except:
+                statusBarText.set('Status: Failed to open file')
+                statusLabel.configure(text_color='#ff0000')
+    streamStack.pop()
+    openWhenDone.set('off')
 
 def animateHeading():
     global animatedTitle, title, cursor
@@ -179,7 +198,7 @@ def search(*args, **kwargs):
             statusBarText.set('Status: Searching')
 
             #find video-
-            video = YoutubeObject(url, doNothing, completeDownload)
+            video = YoutubeObject(url)
 
             #download thumbnail
             thumbnailPath=video.downloadThumbnail()
@@ -201,8 +220,7 @@ def search(*args, **kwargs):
             statusBarText.set('Status: Free')
 
             #Add to the download stack
-            videoStream = YoutubeStream(video.best, downloadDirectory)
-            downloadStack.append(videoStream)
+            videoStack.append(video)
 
         #Video not found
         except:
@@ -305,7 +323,8 @@ statusLabel=ctk.CTkLabel(font=textFont,
 
 def statusBarClear():
     global statusBarText
-    if statusBarText.get()=='Status: Download Complete' or statusBarText.get()=='Status: Failed to fetch thumbnail' or statusBarText.get()=='Status: Not a valid youtube URL':
+    statusBarFreeValues=['Status: Searching', 'Status: Failed to fetch thumbnail', 'Status: Not a valid youtube URL', 'Status: Sorry, No streams found', 'Status: Choose Download Type, please', 'Status: Choose Download Type and Resolution, please', 'Status: No stream found', 'Status: Download cancelled', 'Status: Choose Resolution, please',  'Status: Opening File', 'Status: Failed to open file', 'Status: Download cancelled']
+    if statusBarText.get() in statusBarFreeValues or 'Complete' in statusBarText.get():
         statusBarText.set('Status: Free')
         if mode=='light':
             statusLabel.configure(text_color='black')
@@ -402,6 +421,15 @@ def setDownloadType(choice):
         downloadTypeMenu.configure(fg_color='red', button_color='#8B0000')
         downloadTypeMenu.place(relx=0.53, rely=0.35, anchor='center')
         resolutionMenu.place(relx=0.83, rely=0.35, anchor='center')
+        if choice=='Video Only':
+            resolutionList=videoStack[-1].getResolutions(videoOnly=True)
+        else:
+            resolutionList=videoStack[-1].getResolutions()
+        print(resolutionList)
+        if resolutionList==[]:
+            statusBarText.set('Status: Sorry, No streams found')
+            statusLabel.configure(text_color='#ff0000')
+        resolutionMenu.configure(values=resolutionList)
 
 downloadTypeMenu=ctk.CTkOptionMenu(master=urlPanel,
                                    values=['Video+Audio', 'Video Only', 'Audio Only'],
@@ -421,9 +449,18 @@ downloadTypeMenu=ctk.CTkOptionMenu(master=urlPanel,
                                    hover=False,
                                    anchor='center')
 
+def setResolutionChoice(choice):
+    global resolutionChoice, downloadType
+    if downloadType.get()!='Choose Download Type':
+        resolutionChoice.set(choice)
+    else:
+        statusBarText.set('Status: Choose Download Type, please')
+        resolutionChoice.set('Choose Resolution')
+        statusLabel.configure(text_color='#ff0000')
+
 resolutionMenu=ctk.CTkOptionMenu(master=urlPanel,
-                                   values=['SD', 'HD', '4k'],
-                                   command=doNothing,
+                                   values=['Choose Download Type'],
+                                   command=setResolutionChoice,
                                    variable=resolutionChoice,
                                    text_color='white',
                                    font=textFont,
@@ -446,21 +483,69 @@ resolutionMenu.place(relx=0.83, rely=0.35, anchor='center')
 
 #The download button
 def cancelADownload():
+    statusBarText.set('Status: Download cancelled')
+    statusLabel.configure(text_color='#ff0000')
     downloadButton.configure(image=downloadImage, text='Download', command=downloadAStream, fg_color='#1DB954', hover_color='#1DB954')
     progressBar.place_forget()
+    streamStack.pop().cancelDownload()
+
+def updateProgressBar():
+    global progressBar, streamStack
+    if streamStack[-1].getProgressDecimal()<=0.99:
+        if streamStack[-1].filesize==0:
+            progressBar.set(0)
+        else:
+            progressBar.set(streamStack[-1].getProgressDecimal())
+            title=videoStack[-1].getTitle()
+            if len(title)>45:
+                title=title[:42]+'...'
+            statusBarText.set(f'Status: Downloading {title}  |  {streamStack[-1].getProgressPercentage()} | {streamStack[-1].getDisplayableSize()}/{streamStack[-1].getDisplayableFileSize()}')
+        root.after(100, updateProgressBar)
 
 def downloadAStream():
-    global downloadStack
+    global streamStack, downloadDirectory, completeDownload
+    #Check if resolution and type are chosen
+    if downloadType.get()=='Choose Download Type':
+        statusBarText.set('Status: Choose Download Type and Resolution, please')
+        statusLabel.configure(text_color='#ff0000')
+        return
+    if resolutionChoice.get()=='Choose Resolution':
+        statusBarText.set('Status: Choose Resolution, please')
+        statusLabel.configure(text_color='#ff0000')
+        return
+    #Add stream to stram stack
+    if downloadType.get()=='Audio Only':
+        filename = asksaveasfilename(defaultextension=".mp3", filetypes=[("Audio files", "*.mp3")], initialfile=videoStack[-1].getTitle())
+        if filename:
+            downloadPath = filename
+        else:
+            return
+        streamStack.append(YoutubeStream(videoStack[-1].streams.filter(only_audio=True).order_by('abr')[-1], downloadPath, None, completeDownload))
+    else:
+        filename = asksaveasfilename(defaultextension=".mp4", filetypes=[("Video files", "*.mp4")], initialfile=videoStack[-1].getTitle())
+        if filename:
+            downloadPath = filename
+        else:
+            return
+        chosenStream=YoutubeStream(videoStack[-1].getChosenStream(downloadType.get(), resolutionChoice.get()), downloadPath, updateProgressBar, completeDownload)
+        if chosenStream==None:
+            statusBarText.set('Status: No stream found')
+            statusLabel.configure(text_color='#ff0000')
+            return
+        streamStack.append(YoutubeStream(videoStack[-1].getChosenStream(downloadType.get(), resolutionChoice.get()), downloadPath, updateProgressBar, completeDownload))
     #Set the download button to cancel
     downloadButton.configure(image=cancelImage, text='Cancel', command=cancelADownload, fg_color='red', hover_color='red')
     progressBar.place(relx=0.65, rely=0.85, anchor='center')
-    video=downloadStack.pop()
+    stream=streamStack[-1]
     # work on the statusLabel when download starts
     statusLabel.tkraise()
-    statusBarText.set(f'Status: Downloading {video.getTitle()}')
+    title=videoStack[-1].getTitle()
+    if len(title)>55:
+        title=title[:52]+'...'
+    statusBarText.set(f'Status: Downloading {title},          0%     0.00 MB/{stream.getDisplayableSize()}')
     statusLabel.configure(text_color='#00ff00')
     #begin the download
-    downloadThread=threading.Thread(target=video.download)
+    downloadThread=threading.Thread(target=stream.downloadVideo)
     downloadThread.start()
 
 downloadButton=ctk.CTkButton(master=urlPanel,
@@ -486,9 +571,20 @@ progressBar=ctk.CTkProgressBar(master=urlPanel,
                                width=300,
                                height=10,
                                corner_radius=10,
-                               progress_color='red',
+                               progress_color='#1DB954',
                                orientation='horizontal')
-progressBar.set(0.5)
+progressBar.set(0)
+
+#--------------------------------------------------
+
+#OpenDecisionSlider
+def chooseOpenWhenDone():
+    print(openWhenDone.get())
+
+openWhenDoneSwitch = ctk.CTkSwitch(urlPanel, text="", command=chooseOpenWhenDone, variable=openWhenDone, onvalue="on", offvalue="off", button_color='#1DB954', progress_color='#14906A', button_hover_color='#1DB954')
+openWhenDoneLabel = ctk.CTkLabel(urlPanel, text="Open when done", font=displayTextFont, fg_color='transparent', text_color='#1DB954', anchor='center')
+openWhenDoneSwitch.place(relx=0.8, rely=0.77, anchor='center')
+openWhenDoneLabel.place(relx=0.6, rely=0.77, anchor='center')
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 

@@ -3,11 +3,14 @@ import threading
 from pytube import request
 import time
 class YoutubeStream:
-    def __init__(self, stream, directoryPath):
+    def __init__(self, stream, downloadPath, progressCallback, completionCallback):
         self.cancelled = False
         self.stream = stream
         self.title = stream.title
         self.codecs = stream.codecs
+        self.progressCallback = progressCallback
+        self.completionCallback = completionCallback
+        self.currentSize = 0
         try:
             self.resolution = stream.resolution
             self.fps = stream.fps
@@ -19,8 +22,7 @@ class YoutubeStream:
         self.mime_type = stream.mime_type
         self.abr = stream.abr
         self.type = stream.type
-        self.directoryPath = directoryPath
-        self.downloadPath = os.path.join(self.directoryPath, self.title + '.mp4')
+        self.downloadPath = downloadPath
 
     def downloadVideo(self):
         self.cancelled = False
@@ -33,9 +35,18 @@ class YoutubeStream:
                     break
                 chunk = next(stream, None)
                 if chunk:
+                    if self.progressCallback==None:
+                        pass
+                    else:
+                        self.progressCallback()
+                    self.currentSize += len(chunk)
                     f.write(chunk)
                 else:
                     print('Download completed')
+                    if self.completionCallback==None:
+                        pass
+                    else:
+                        self.completionCallback()
                     break
 
     def cancelDownload(self):
@@ -80,11 +91,14 @@ class YoutubeStream:
     def getFilesize(self):
         return self.filesize
 
+    def getDirectoryPath(self):
+        return self.directoryPath
+
     def getDownloadPath(self):
         return self.downloadPath
 
     def getDisplayableSize(self):
-        sizeBytes = os.path.getsize(self.downloadPath)
+        sizeBytes = self.currentSize
         units = ['B', 'KB', 'MB', 'GB']
         unitsIndex = 0
         while sizeBytes > 1024 and unitsIndex < len(units) - 1:
@@ -93,9 +107,21 @@ class YoutubeStream:
         sizeFormatted = "{:.1f} {}".format(sizeBytes, units[unitsIndex])
         return sizeFormatted
 
-    def getProgress(self):
-        sizeBytes = os.path.getsize(self.downloadPath)
-        return f'{sizeBytes/self.filesize*100:.1f}%'
+    def getDisplayableFileSize(self):
+        sizeBytes = self.filesize
+        units = ['B', 'KB', 'MB', 'GB']
+        unitsIndex = 0
+        while sizeBytes > 1024 and unitsIndex < len(units) - 1:
+            sizeBytes /= 1024.0
+            unitsIndex += 1
+        sizeFormatted = "{:.1f} {}".format(sizeBytes, units[unitsIndex])
+        return sizeFormatted
+
+    def getProgressPercentage(self):
+        return f'{self.currentSize/self.filesize*100:.1f}%'
+
+    def getProgressDecimal(self):
+        return float(f'{self.currentSize/self.filesize:.1f}')
 
 
 

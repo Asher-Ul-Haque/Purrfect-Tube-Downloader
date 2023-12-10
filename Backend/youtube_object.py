@@ -3,9 +3,9 @@ import requests
 import os
 
 class YoutubeObject:
-    def __init__(self, url, progressCallback=None, completeCallback=None):
+    def __init__(self, url):
         self.url = url
-        self.yt = YouTube(self.url, on_progress_callback=progressCallback, on_complete_callback=completeCallback)
+        self.yt = YouTube(self.url)
         self.streams = self.yt.streams
         self.title = self.yt.title
         self.author = self.yt.author
@@ -41,6 +41,28 @@ class YoutubeObject:
 
     def getThumbnailURL(self):
         return self.thumbnail_url
+
+    def _getUniqueStreams(self, unsortedList):
+        uniqueStreams = []
+        for stream in unsortedList:
+            if str(stream.type) == 'audio':
+                if not any(s.abr == stream.abr for s in uniqueStreams):
+                    uniqueStreams.append(stream)
+            else:
+                if not any(s.resolution == stream.resolution and s.fps == stream.fps for s in uniqueStreams):
+                    uniqueStreams.append(stream)
+        return uniqueStreams
+
+    def getChosenStream(self, type='Video+Audio', resolution='720p: (0.0 MB)'):
+        resolution=resolution.split(':')[0]
+        if type=='Video+Audio':
+            for stream in self.getVideoAndAudioStreams():
+                if stream.resolution==resolution:
+                    return stream
+        else:
+            for stream in self.getVideoOnlyStreams():
+                if stream.resolution == resolution:
+                    return stream
 
     def downloadThumbnail(self):
         response = requests.get(self.thumbnail_url)
@@ -81,6 +103,30 @@ class YoutubeObject:
             displayableTitle=displayableAuthor[:72]+'...'
         return 'by: '+displayableAuthor
 
+    def getAudioOnlyStreams(self):
+        return self._getUniqueStreams(self.streams.filter(only_audio=True))
+    def getVideoOnlyStreams(self):
+        return self._getUniqueStreams(self.streams.filter(only_video=True, file_extension='mp4', progressive=True))
+
+    def getVideoAndAudioStreams(self):
+        return self._getUniqueStreams(self.streams.filter(only_video=False, only_audio=False, file_extension='mp4', progressive=True))
+
+    def getResolutions(self, videoOnly=False):
+        global video
+        resolutionList = []
+        if videoOnly:
+            for stream in self._getUniqueStreams(self.streams.filter(only_video=True, file_extension='mp4', progressive=True).order_by('resolution')):
+                if stream.resolution in ['144p', '240p', '360p', '480p', '720p', '1080p', '1440p',
+                                         '2160p'] and stream.resolution not in resolutionList:
+                    resolutionList.append(f'{stream.resolution}: ({self.getDisplayableFilesize(stream.filesize)})')
+        else:
+            for stream in self._getUniqueStreams(
+                    self.streams.filter(only_video=False, only_audio=False, file_extension='mp4', progressive=True).order_by('resolution')):
+                if stream.resolution in ['144p', '240p', '360p', '480p', '720p', '1080p', '1440p',
+                                         '2160p'] and stream.resolution not in resolutionList:
+                    resolutionList.append(f'{stream.resolution}: ({self.getDisplayableFilesize(stream.filesize)})')
+        return resolutionList
+
     def getDisplayData(self):
         minutes=0
         hours=0
@@ -116,4 +162,15 @@ class YoutubeObject:
             thousands=(self.views%1000000)
             data+=str(millions)+'.'+str(thousands)[:2]+'M'
         return data
+
+    def getDisplayableFilesize(self, size):
+        units = ['B', 'KB', 'MB', 'GB']
+        unitsIndex = 0
+        while size > 1024 and unitsIndex < len(units) - 1:
+            size /= 1024.0
+            unitsIndex += 1
+        sizeFormatted = f"{size:.1f} {units[unitsIndex]}"
+        return sizeFormatted
+
+
 
