@@ -205,6 +205,11 @@ try:
                     except:
                         print('Failed to create shortcut')
                         progressLabel.configure(text='Installation Complete, Failed to create shortcut \n open the Frontend folder and open manually')
+            else:
+                progressLabel.configure(text='Installation Complete, Failed to create shortcut \n open the Frontend folder and open manually')
+                openButton = ctk.CTkButton(root, text='Open', fg_color='red', font=('Cooper Black', 16),
+                                           hover_color='#cc0000', text_color='white', command=openFile)
+                openButton.place(relx=0.8, rely=0.85, anchor='center')
 
     #The big cat
     catPath = os.path.join(assetsDirectory, 'blue_cat.png')
