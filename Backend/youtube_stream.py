@@ -24,7 +24,7 @@ class YoutubeStream:
         self.type = stream.type
         self.downloadPath = downloadPath
 
-    def downloadVideo(self):
+    def _downloadVideo(self):
         self.cancelled = False
         with open(self.downloadPath, 'wb') as f:
             is_cancelled = False
@@ -46,6 +46,11 @@ class YoutubeStream:
                     else:
                         self.completionCallback()
                     break
+
+    def downloadVideo(self):
+        downloadThread = threading.Thread(target=self._downloadVideo)
+        downloadThread.start()
+
 
     def cancelDownload(self):
         self.cancelled = True

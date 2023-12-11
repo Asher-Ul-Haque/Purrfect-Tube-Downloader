@@ -141,9 +141,9 @@ def completeDownload(*args):
     statusBarText.set(f'Status: Download Complete:- {title}')
     downloadButton.configure(fg_color='#1DB954', text='Download', text_color='white', hover_color='#1DB954', font=subHeadingFont, anchor='e', image=downloadImage, height=20, width=50, compound='left', command=downloadAStream)
     progressBar.place_forget()
-    statusBarText.set('Status: Opening File')
-    statusLabel.configure(text_color='#00ff00')
     if openWhenDone.get()=='on':
+        statusBarText.set('Status: Opening File')
+        statusLabel.configure(text_color='#00ff00')
         try:
             os.startfile(streamStack[-1].downloadPath)
         except:
@@ -189,56 +189,56 @@ def animateSearchPanelDownwards():
         searchBar.insert(0, '')
 
 def search(*args, **kwargs):
-    def find():
-        global url, thumbnail
-        url = searchBar.get()
-        try:
-            #set status to searching
+    global videoStack, url, thumbnail
+    def findVideo(attempts=0):
+        global url, searchBar, videoStack
+        if attempts==0:
             statusBarText.set('Status: Searching')
-
-            #find video-
+            statusLabel.configure(text_color='#ffffff')
+        else:
+            statusBarText.set('Status: Searching. Please wait...')
+            statusLabel.configure(text_color='#ffffff')
+        if attempts<3:
+            url=searchBar.get()
             try:
-                video = YoutubeObject(url)
-                time.sleep(1)
+                yt=YoutubeObject(url)
+                videoStack.append(yt)
+                print(videoStack)
+                print(yt.title)
+                time.sleep(0.5)
+
+                # download thumbnail
+                print('We have reached thumbnail')
+                thumbnailPath = videoStack[-1].downloadThumbnail()
+                if thumbnailPath != 'Failed to fetch thumbnail':
+                    thumbnail = Photo(thumbnailPath, maintainAspectRatio=True).getImage()
+                    thumbnailLabel.configure(image=thumbnail)
+                else:
+                    statusBarText.set('Status: Failed to fetch thumbnail')
+                    statusLabel.configure(text_color='#ff0000')
+
+                # Set the video data
+                print('We have reached video data')
+                videoTitleLabel.configure(text=yt.getDisplayableTitle())
+                videoDataLabel.configure(text=yt.getDisplayData())
+
+                # Start the animations
+                print('We have reached animations')
+                animateSearchPanelUpwards()
+                urlPanel.animateUpwards()
+                statusLabel.tkraise()
+                statusBarText.set('Status: Free')
             except:
-                try:
-                    video = YoutubeObject(url)
-                    time.sleep(1)
-                except:
-                    pass
-
-            #download thumbnail
-            thumbnailPath=video.downloadThumbnail()
-            if thumbnailPath!='Failed to fetch thumbnail':
-                thumbnail = Photo(thumbnailPath, maintainAspectRatio=True).getImage()
-                thumbnailLabel.configure(image=thumbnail)
-            else:
-                statusBarText.set('Status: Failed to fetch thumbnail')
-                statusLabel.configure(text_color='#ff0000')
-
-            #Set the video data
-            videoTitleLabel.configure(text=video.getDisplayableTitle())
-            videoDataLabel.configure(text=video.getDisplayData())
-
-            #Start the animations
-            animateSearchPanelUpwards()
-            urlPanel.animateUpwards()
-            statusLabel.tkraise()
-            statusBarText.set('Status: Free')
-
-            #Add to the download stack
-            videoStack.append(video)
-
-        #Video not found
-        except:
+                time.sleep(1)
+                findVideo(attempts+1)
+        else:
             statusBarText.set('Status: Failed to find, please check the URL or internet connection')
             statusLabel.configure(text_color='#ff0000')
 
-    #define the threads for animation and search
-    searchThread = threading.Thread(target=find)
-    mascotAnimationThread = threading.Thread(target=animateMascot, kwargs={'infinite': False})
-    searchThread.start()
-    mascotAnimationThread.start()
+    findThread=threading.Thread(target=findVideo)
+    findThread.start()
+
+
 
 searchButton=ctk.CTkButton(master=root,
                            fg_color='transparent',
@@ -345,7 +345,7 @@ statusBarClear()
 def goToHomePage():
     global root, url
     root.destroy()
-    os.system('python run_me.py')
+    os.system('python Purrfect_Tube_Downloader.py')
 
 homeButton.configure(command=goToHomePage)
 
@@ -497,6 +497,8 @@ def cancelADownload():
 
 def updateProgressBar():
     global progressBar, streamStack
+    if len(streamStack)==0:
+        return
     if streamStack[-1].getProgressDecimal()<=0.99:
         if streamStack[-1].filesize==0:
             progressBar.set(0)
@@ -515,7 +517,7 @@ def downloadAStream():
         statusBarText.set('Status: Choose Download Type and Resolution, please')
         statusLabel.configure(text_color='#ff0000')
         return
-    if resolutionChoice.get()=='Choose Resolution':
+    elif resolutionChoice.get()=='Choose Resolution' and downloadType.get()!='Audio Only':
         statusBarText.set('Status: Choose Resolution, please')
         statusLabel.configure(text_color='#ff0000')
         return
@@ -548,7 +550,7 @@ def downloadAStream():
     title=videoStack[-1].getTitle()
     if len(title)>55:
         title=title[:52]+'...'
-    statusBarText.set(f'Status: Downloading {title},          0%     0.00 MB/{stream.getDisplayableSize()}')
+    statusBarText.set(f'Status: Downloading {title},      0%     0.00 MB/{stream.getDisplayableSize()}')
     statusLabel.configure(text_color='#00ff00')
     #begin the download
     downloadThread=threading.Thread(target=stream.downloadVideo)
@@ -592,5 +594,4 @@ openWhenDoneLabel.place(relx=0.6, rely=0.77, anchor='center')
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
 #RUN
-if __name__=='__main__':
-    root.mainloop()
+root.mainloop()

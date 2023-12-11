@@ -65,14 +65,15 @@ class YoutubeObject:
                     return stream
 
     def downloadThumbnail(self):
-        response = requests.get(self.thumbnail_url)
-        thumbnailDirectory = os.path.abspath('../Assets/Thumbnails')
-        if response.status_code == 200:
-            path = os.path.join(thumbnailDirectory, self.title + ".png")
-            with open(path, "wb") as thumbnail:
-                thumbnail.write(response.content)
-            return path
-        else:
+        try:
+            response = requests.get(self.thumbnail_url)
+            thumbnailDirectory = os.path.abspath('../Assets/Thumbnails')
+            if response.status_code == 200:
+                path = os.path.join(thumbnailDirectory, self.title + ".png")
+                with open(path, "wb") as thumbnail:
+                    thumbnail.write(response.content)
+                return path
+        except:
             return 'Failed to fetch thumbnail'
 
     def getDisplayableTitle(self):
