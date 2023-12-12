@@ -1,3 +1,5 @@
+import time
+
 try:
     import os
     import sys
@@ -47,8 +49,8 @@ try:
                 import platform, subprocess
                 system_platform = platform.system()
                 if system_platform == "Darwin":  # macOS
-                    root.destroy()
                     subprocess.run(["open", os.path.join(frontendDirectory, 'Purrfect_Tube_Downloader.py')])
+                    root.destroy()
             except:
                 try:
                     os.system('python -m Purrfect_Tube_Downloader.py')
@@ -73,25 +75,29 @@ try:
         progressLabel.place(relx=0.5, rely=0.85, anchor='center')
         try:
             progressLabel.configure(text='Installing...')
+            time.sleep(1)
             os.system('pip install -r requirements.txt')
             success=1
         except:
             try:
                 progressLabel.configure(text='Installing...')
+                time.sleep(1)
                 os.system('pip3 install -r requirements.txt')
                 success=1
             except:
                 try:
                     progressLabel.configure(text='Installing...')
+                    time.sleep(1)
                     os.system('python -m pip install -r requirements.txt')
                     success=1
                 except:
                     try:
                         progressLabel.configure(text='Installing...')
+                        time.sleep(1)
                         os.system('python -m pip3 install -r requirements.txt')
                         success=1
                     except:
-                        print('Failed to install dependencies')
+                        progressLabel.configure(text='Failed to install dependencies')
                         success=0
         if success==0:
             progressLabel.configure(text='Failed to install, try again or contact developer')
@@ -109,6 +115,7 @@ try:
                     # Set the target of the shortcut
                     shortcut.Targetpath = target_file
                     shortcut.WorkingDirectory = frontendDirectory
+                    shortcut.iconLocation = os.path.join(assetsDirectory, 'logo_alternate_big.ico')
                     shortcut.save()
                 except:
                     try:
@@ -122,6 +129,7 @@ try:
                         # Set the target of the shortcut
                         shortcut.Targetpath = target_file
                         shortcut.WorkingDirectory = frontendDirectory
+                        shortcut.iconLocation = os.path.join(assetsDirectory, 'Logo.ico')
                         shortcut.save()
                     except:
                         print('Failed to install dependencies')

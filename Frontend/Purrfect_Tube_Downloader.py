@@ -1,6 +1,5 @@
 #IMPORTS-
 import time
-
 import customtkinter as ctk
 import random
 import os
@@ -90,7 +89,7 @@ homeButton=ctk.CTkButton(master=root,
                          fg_color='transparent',
                          text='',
                          corner_radius=10,
-                         hover_color='#000000',
+                         hover_color=('#ffffff','#000000'),
                          anchor='e',
                          image=blueCat,
                          width=5,
@@ -126,7 +125,7 @@ homeButton.place(relx=0.03, rely=0.0)
 #--------------------------------------------------
 
 #The name logo-
-titleLabel=ctk.CTkLabel(text='SAMPLE',
+titleLabel=ctk.CTkLabel(text='',
                         font=headingFont,
                         master=root,
                         text_color='red')
@@ -206,7 +205,14 @@ def search(*args, **kwargs):
         if attempts<3:
             url=searchBar.get()
             try:
-                yt=YoutubeObject(url)
+                if attempts==0:
+                    yt=YoutubeObject(url)
+                else:
+                    import certifi
+                    import ssl
+                    print('Using certifi and ssl')
+                    ssl_context = ssl.create_default_context(cafile=certifi.where())
+                    yt=YoutubeObject(url, ssl_context)
                 time.sleep(0.5)
 
                 # download thumbnail
@@ -241,13 +247,11 @@ def search(*args, **kwargs):
     findThread=threading.Thread(target=findVideo)
     findThread.start()
 
-
-
 searchButton=ctk.CTkButton(master=root,
                            fg_color='transparent',
                            text='',
                            corner_radius=20,
-                           hover_color='#000000',
+                           hover_color=('#ffffff','#000000'),
                            anchor='e',
                            image=magnifyingGlass,
                            width=8,
@@ -256,7 +260,7 @@ searchButton=ctk.CTkButton(master=root,
                            command=search)
 
 searchBar=ctk.CTkEntry(master=root,
-                       fg_color='white',
+                       fg_color=('#ffffff', '#dddddd'),
                        bg_color='transparent',
                        text_color='#EE0000',
                        font=textFont,
