@@ -7,6 +7,7 @@ import os
 from photo_object import Photo
 import sys
 import threading
+import requests
 sys.path.append(os.path.abspath('../Backend'))
 sys.path.append(os.path.abspath('../Frontend'))
 sys.path.append(os.path.abspath('../Downloads'))
@@ -37,7 +38,7 @@ blueCatBlink=Photo('blue_cat_blink.png', 100, 100).getImage()
 sun=Photo('sun.png',64,64).getImage()
 moon=Photo('moon.png',64,64).getImage()
 magnifyingGlass=Photo('magnifying_glass.png',64,64).getImage()
-thumbnailBackup=Photo('photo_backup.png', 200, 200).getImage()
+thumbnailBackup=Photo('photo_backup.png', 100, 100).getImage()
 cascadeDown=Photo('cascade_button.png',20, 20).getImage()
 downloadImage=Photo('download_button.png',64, 64).getImage()
 cancelImage=Photo('cancel_button.png',64, 64).getImage()
@@ -77,6 +78,7 @@ videoStack=[]
 streamStack=[]
 searchPanelyPos = 0.6
 thumbnail=thumbnailBackup
+searchPanelIsOpen=False
 
 #= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
 
@@ -184,14 +186,17 @@ def animateSearchPanelDownwards():
         searchButton.place(relx=0.9, rely=searchPanelyPos, anchor='center')
         searchBar.place(relx=0.45, rely=searchPanelyPos, anchor='center')
         root.after(5, animateSearchPanelDownwards)
-    else:
-        searchBar.delete(0, 'end')
-        searchBar.insert(0, '')
 
 def search(*args, **kwargs):
-    global videoStack, url, thumbnail
+    global videoStack, url, thumbnail, searchPanelIsOpen
+    if searchPanelIsOpen:
+        statusBarText.set('Status: Searching')
+        statusLabel.configure(text_color='#ffffff')
+        urlPanel.animateDownwards()
+        animateSearchPanelDownwards()
+        statusLabel.tkraise()
     def findVideo(attempts=0):
-        global url, searchBar, videoStack
+        global url, searchBar, videoStack, searchPanelIsOpen, thumbnail
         if attempts==0:
             statusBarText.set('Status: Searching')
             statusLabel.configure(text_color='#ffffff')
@@ -202,32 +207,40 @@ def search(*args, **kwargs):
             url=searchBar.get()
             try:
                 yt=YoutubeObject(url)
-                videoStack.append(yt)
-                print(videoStack)
                 print(yt.title)
                 time.sleep(0.5)
 
                 # download thumbnail
                 print('We have reached thumbnail')
-                thumbnailPath = videoStack[-1].downloadThumbnail()
+                thumbnailPath = yt.downloadThumbnail()
+                time.sleep(1)
+                print(thumbnailPath)
+                print('We have no error in the thumbnail')
                 if thumbnailPath != 'Failed to fetch thumbnail':
                     thumbnail = Photo(thumbnailPath, maintainAspectRatio=True).getImage()
-                    thumbnailLabel.configure(image=thumbnail)
+                    print('We have no error in the default thumbnail')
+                    thumbnailLabel.configure(image=thumbnail, text='')
                 else:
+                    thumbnailLabel.configure(image=thumbnailBackup)
+                    print('Couldnt download thumbnail')
+                    thumbnailLabel.configure(text_color='#ff0000', text='Failed to fetch thumbnail', font=textFont, compound='bottom')
                     statusBarText.set('Status: Failed to fetch thumbnail')
-                    statusLabel.configure(text_color='#ff0000')
 
                 # Set the video data
                 print('We have reached video data')
                 videoTitleLabel.configure(text=yt.getDisplayableTitle())
+                print('We have no error in the title')
                 videoDataLabel.configure(text=yt.getDisplayData())
+                print('We have no error in the data')
 
                 # Start the animations
                 print('We have reached animations')
+                searchPanelIsOpen=True
                 animateSearchPanelUpwards()
                 urlPanel.animateUpwards()
                 statusLabel.tkraise()
                 statusBarText.set('Status: Free')
+                videoStack.append(yt)
             except:
                 time.sleep(1)
                 findVideo(attempts+1)
@@ -357,7 +370,7 @@ urlPanel=AnimatedSlidePanel(root, 1, 0.4)
 thumbnailLabel=ctk.CTkLabel(master=urlPanel,
                             image=thumbnailBackup,
                             text='',
-                            fg_color='red',
+                            fg_color='transparent',
                             anchor='center',
                             corner_radius=0,
                             width=10,
@@ -397,10 +410,13 @@ ctk.CTkLabel(master=urlPanel, text_color='red', text='Download Options-', font=s
 
 #The close Panel button
 def closePanel():
-    global url
+    global url, searchBar
     urlPanel.animateDownwards()
     animateSearchPanelDownwards()
     statusLabel.tkraise()
+    searchBar.delete(0, 'end')
+    searchBar.insert(0, '')
+    searchPanelIsOpen=False
 
 closePanelButton=ctk.CTkButton(master=urlPanel,
                                fg_color='transparent',
