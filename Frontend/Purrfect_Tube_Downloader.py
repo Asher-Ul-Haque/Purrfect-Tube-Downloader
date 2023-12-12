@@ -207,34 +207,24 @@ def search(*args, **kwargs):
             url=searchBar.get()
             try:
                 yt=YoutubeObject(url)
-                print(yt.title)
                 time.sleep(0.5)
 
                 # download thumbnail
-                print('We have reached thumbnail')
                 thumbnailPath = yt.downloadThumbnail()
                 time.sleep(1)
-                print(thumbnailPath)
-                print('We have no error in the thumbnail')
                 if thumbnailPath != 'Failed to fetch thumbnail':
                     thumbnail = Photo(thumbnailPath, maintainAspectRatio=True).getImage()
-                    print('We have no error in the default thumbnail')
                     thumbnailLabel.configure(image=thumbnail, text='')
                 else:
                     thumbnailLabel.configure(image=thumbnailBackup)
-                    print('Couldnt download thumbnail')
                     thumbnailLabel.configure(text_color='#ff0000', text='Failed to fetch thumbnail', font=textFont, compound='bottom')
                     statusBarText.set('Status: Failed to fetch thumbnail')
 
                 # Set the video data
-                print('We have reached video data')
                 videoTitleLabel.configure(text=yt.getDisplayableTitle())
-                print('We have no error in the title')
                 videoDataLabel.configure(text=yt.getDisplayData())
-                print('We have no error in the data')
 
                 # Start the animations
-                print('We have reached animations')
                 searchPanelIsOpen=True
                 animateSearchPanelUpwards()
                 urlPanel.animateUpwards()
